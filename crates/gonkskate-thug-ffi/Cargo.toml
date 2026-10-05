@@ -1,0 +1,7 @@
+[package]
+name = "gonkskate-thug-ffi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gonkskate-map = { path = "../gonkskate-map" }

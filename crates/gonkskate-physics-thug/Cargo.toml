@@ -1,0 +1,8 @@
+[package]
+name = "gonkskate-physics-thug"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gonkskate-map = { path = "../gonkskate-map" }
+gonkskate-physics-api = { path = "../gonkskate-physics-api" }

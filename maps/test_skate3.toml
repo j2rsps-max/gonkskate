@@ -1,0 +1,13 @@
+name = "Skate 3 Test Map"
+source_game = "Skate 3"
+
+[[spawns]]
+name = "default"
+position = { x = 0.0, y = 0.0, z = 0.0 }
+
+[[rails]]
+name = "test_ledge"
+points = [
+  { x = -3.0, y = 0.5, z = 4.0 },
+  { x =  3.0, y = 0.5, z = 4.0 },
+]

@@ -1,0 +1,535 @@
+{
+  "source": "THUG Scripts/game/skater/physics.q",
+  "parameters": [
+    {
+      "type": "float",
+      "name": "Physics_Rolling_Friction",
+      "value": 1e-05
+    },
+    {
+      "type": "float",
+      "name": "Carplant_upward_boost",
+      "value": 100.0
+    },
+    {
+      "type": "float",
+      "name": "Carplant_forward_boost",
+      "value": 400.0
+    },
+    {
+      "type": "float",
+      "name": "Lip_side_hop_speed",
+      "value": 10.0
+    },
+    {
+      "type": "int",
+      "name": "Lip_held_jump_out_time",
+      "value": 300
+    },
+    {
+      "type": "float",
+      "name": "Lip_side_jump_speed",
+      "value": 200.0
+    },
+    {
+      "type": "int",
+      "name": "Lip_held_jump_along_time",
+      "value": 300
+    },
+    {
+      "type": "float",
+      "name": "Lip_along_jump_speed",
+      "value": 100.0
+    },
+    {
+      "type": "float",
+      "name": "SkateInAble_LipHorizOffset",
+      "value": 24.0
+    },
+    {
+      "type": "float",
+      "name": "SkateInAble_LipDownOffset",
+      "value": 7.0
+    },
+    {
+      "type": "float",
+      "name": "SkateInAble_LipExtraCheckHorizOffset",
+      "value": 13.0
+    },
+    {
+      "type": "float",
+      "name": "SkateInAble_LipExtraCheckDownOffset",
+      "value": 2400.0
+    },
+    {
+      "type": "float",
+      "name": "SkateInAble_HorizOffset",
+      "value": 30.0
+    },
+    {
+      "type": "float",
+      "name": "SkateInAble_DownOffset",
+      "value": 7.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Gravity",
+      "value": -1000.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_walk_rerail_time",
+      "value": 1000.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Heavy_Air_Friction",
+      "value": 0.0001
+    },
+    {
+      "type": "float",
+      "name": "skitch_speed_match",
+      "value": 1.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Brake_Acceleration",
+      "value": 900.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_max_sloped_turn_speed",
+      "value": 300.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_max_sloped_turn_cosine",
+      "value": 0.5
+    },
+    {
+      "type": "float",
+      "name": "Physics_Crouched_Air_Friction",
+      "value": 2e-06
+    },
+    {
+      "type": "float",
+      "name": "Physics_Standing_Air_Friction",
+      "value": 1e-05
+    },
+    {
+      "type": "float",
+      "name": "Skater_Slow_Turn_on_slopes",
+      "value": 3.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_side_collide_height",
+      "value": 16.0
+    },
+    {
+      "type": "float",
+      "name": "skitch_offset",
+      "value": 27.0
+    },
+    {
+      "type": "float",
+      "name": "skitch_suck_speed",
+      "value": 200.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_First_Forward_Collision_Height",
+      "value": 8.1
+    },
+    {
+      "type": "float",
+      "name": "Skater_First_Forward_Collision_Length",
+      "value": 10.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Bounce_Dont_Slow_Angle",
+      "value": 30.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Bounce_Dont_Flail_Speed",
+      "value": 100.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Snap_Up_SKITCHING",
+      "value": 50.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Snap_Up",
+      "value": 13.0
+    },
+    {
+      "type": "float",
+      "name": "Ground_stick_angle",
+      "value": 30.0
+    },
+    {
+      "type": "float",
+      "name": "Ground_stick_angle_forward",
+      "value": 60.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Snap_Down",
+      "value": 8.2
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Snap_Down_Skitching",
+      "value": 150.0
+    },
+    {
+      "type": "int",
+      "name": "Skater_vert_active_up_time",
+      "value": 250
+    },
+    {
+      "type": "float",
+      "name": "Normal_Lerp_Speed",
+      "value": 0.1
+    },
+    {
+      "type": "float",
+      "name": "Physics_Vert_Push_Out",
+      "value": 3.0
+    },
+    {
+      "type": "int",
+      "name": "Skater_vert_push_time",
+      "value": 130
+    },
+    {
+      "type": "float",
+      "name": "physics_break_air_speed_scale",
+      "value": 0.75
+    },
+    {
+      "type": "float",
+      "name": "physics_break_air_up_scale",
+      "value": 0.75
+    },
+    {
+      "type": "float",
+      "name": "Skater_Break_Vert_forward_tilt",
+      "value": 45.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Acid_Drop_Pop_Speed",
+      "value": 200.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Transfer_Speed_Limit_Override_Max",
+      "value": 1.75
+    },
+    {
+      "type": "float",
+      "name": "Physics_Transfer_Speed_Limit_Override_Drop_Rate",
+      "value": 0.5
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_Gravity",
+      "value": -1350.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_vert_hang_Stat",
+      "value": 1.1
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_hang_Stat",
+      "value": 1.0
+    },
+    {
+      "type": "float",
+      "name": "moon_gravity",
+      "value": 0.5
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Rotation",
+      "value": 1.8
+    },
+    {
+      "type": "float",
+      "name": "Physics_Ground_Sharp_Rotation",
+      "value": 3.6
+    },
+    {
+      "type": "float",
+      "name": "cess_turn_min_speed",
+      "value": 40.0
+    },
+    {
+      "type": "float",
+      "name": "cess_turn_cap_speed",
+      "value": 500.0
+    },
+    {
+      "type": "float",
+      "name": "cess_turn_multiplier",
+      "value": 1.5
+    },
+    {
+      "type": "float",
+      "name": "cess_Friction",
+      "value": 0.06
+    },
+    {
+      "type": "float",
+      "name": "Skater_side_collide_length",
+      "value": 15.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_air_extra_side_col",
+      "value": 12.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Triangle_Window",
+      "value": 0.333
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Delay",
+      "value": 0.666
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Min_Speed",
+      "value": 75.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Upside_Down_Angle",
+      "value": 53.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Max_Incident_Angle",
+      "value": 60.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Max_Tilt",
+      "value": 68.5
+    },
+    {
+      "type": "float",
+      "name": "Wall_Bounce_Angle_Multiplier",
+      "value": 1.1
+    },
+    {
+      "type": "float",
+      "name": "Skate_min_wall_lean_push_speed",
+      "value": 1000.0
+    },
+    {
+      "type": "float",
+      "name": "Skate_wall_lean_push_time",
+      "value": 0.4
+    },
+    {
+      "type": "float",
+      "name": "Skate_wall_lean_push_length",
+      "value": 35.0
+    },
+    {
+      "type": "float",
+      "name": "Skate_wall_lean_push_height",
+      "value": 30.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_Flip_Speed",
+      "value": 1.0
+    },
+    {
+      "type": "float",
+      "name": "Skitch_Max_Distance",
+      "value": 120.0
+    },
+    {
+      "type": "int",
+      "name": "Skater_Vert_Allow_break_Time",
+      "value": 200
+    },
+    {
+      "type": "float",
+      "name": "Skater_Min_Distance_To_Wall",
+      "value": 8.0
+    },
+    {
+      "type": "float",
+      "name": "skater_autoturn_cancel_time",
+      "value": 300.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_No_Rotate_Time",
+      "value": 100.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_Ramp_Rotate_Time",
+      "value": 50.0
+    },
+    {
+      "type": "float",
+      "name": "skater_autoturn_vert_angle",
+      "value": 5.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_autoturn_speed",
+      "value": 3.0
+    },
+    {
+      "type": "float",
+      "name": "spin_count_slop",
+      "value": 60.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_No_Lean_Time",
+      "value": 200.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_Ramp_Lean_Time",
+      "value": 200.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Air_Snap_Up",
+      "value": 15.0
+    },
+    {
+      "type": "float",
+      "name": "Skater_default_head_height",
+      "value": 77.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Gravity",
+      "value": -969.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Turn_Speed",
+      "value": 0.004
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Down_Collision_Check_Length",
+      "value": -10.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Jump_Out_Speed",
+      "value": 40.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Ride_Jump_Up_Speed",
+      "value": 80.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_Corner_Leave_Angle",
+      "value": 50.0
+    },
+    {
+      "type": "float",
+      "name": "Point_Rail_Speed_Boost",
+      "value": 100.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_Minimum_Rerail_Time",
+      "value": 500.0
+    },
+    {
+      "type": "float",
+      "name": "LipAllowAngle",
+      "value": 15.0
+    },
+    {
+      "type": "float",
+      "name": "LipAllowAngle_Override",
+      "value": 60.0
+    },
+    {
+      "type": "float",
+      "name": "LipPlayerHorizontalAngle",
+      "value": 47.0
+    },
+    {
+      "type": "float",
+      "name": "LipRampVertAngle",
+      "value": 68.5
+    },
+    {
+      "type": "float",
+      "name": "Rail_Speed_Boost",
+      "value": 150.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_Bad_Ledge_Drop_Down_Dist",
+      "value": 3.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_Bad_Ledge_Side_Dist",
+      "value": 5.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_Tolerance",
+      "value": 0.7
+    },
+    {
+      "type": "float",
+      "name": "Rail_minimum_rerail_time",
+      "value": 500.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_jump_rerail_time",
+      "value": 300.0
+    },
+    {
+      "type": "float",
+      "name": "Physics_Rail_Gravity",
+      "value": -2000.0
+    },
+    {
+      "type": "float",
+      "name": "Rail_Jump_Angle",
+      "value": 15.0
+    },
+    {
+      "type": "float",
+      "name": "Wall_Non_Skatable_Angle",
+      "value": 25.0
+    },
+    {
+      "type": "int",
+      "name": "skater_max_tense_time",
+      "value": 200
+    }
+  ]
+}

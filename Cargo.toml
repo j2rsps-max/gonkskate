@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "crates/gonkskate-app",
+    "crates/gonkskate-core",
+    "crates/gonkskate-map",
+    "crates/gonkskate-physics-api",
+    "crates/gonkskate-physics-thug",
+    "crates/gonkskate-physics-skate3",
+    "crates/gonkskate-thug-ffi",
+]
+resolver = "2"

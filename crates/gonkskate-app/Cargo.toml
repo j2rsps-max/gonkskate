@@ -1,0 +1,11 @@
+[package]
+name = "gonkskate-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gonkskate-core = { path = "../gonkskate-core" }
+gonkskate-map = { path = "../gonkskate-map" }
+gonkskate-physics-api = { path = "../gonkskate-physics-api" }
+gonkskate-physics-thug = { path = "../gonkskate-physics-thug" }
+gonkskate-physics-skate3 = { path = "../gonkskate-physics-skate3" }

@@ -1,0 +1,13 @@
+name = "THUG Test Map"
+source_game = "THUG"
+
+[[spawns]]
+name = "default"
+position = { x = 0.0, y = 0.0, z = 0.0 }
+
+[[rails]]
+name = "test_rail"
+points = [
+  { x = 2.0, y = 0.7, z = 2.0 },
+  { x = 2.0, y = 0.7, z = 8.0 },
+]
