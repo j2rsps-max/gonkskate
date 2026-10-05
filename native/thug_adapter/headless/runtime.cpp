@@ -58,7 +58,10 @@ uint32 check_checksum(uint32 crc, const char* text, const char*, int) {
     if (crc!=Headless::checksum(text)) Headless::unsupported("checksum verification");
     return crc;
 }
+namespace Mem { extern "C" { Manager* sp_instance=nullptr; } }
 namespace Dbg {
+char null_pointer_message[]="Null Pointer";
+char* msg_null_pointer=null_pointer_message;
 char sprintf_storage[8192];
 char* sprintf_pad=sprintf_storage;
 void pad_printf(const char* format, ...) { va_list args;va_start(args,format);vsnprintf(sprintf_pad,sizeof(sprintf_storage),format,args);va_end(args); }
@@ -79,7 +82,7 @@ CPendingTricks::CPendingTricks() {m_NumTrickItems=0;}
 void CTrickComponent::SetGraffitiTrickStarted(bool started){Headless::called("SetGraffitiTrickStarted");m_graffiti_trick_started=started;}
 void CTrickComponent::TrickOffObject(uint32 node){Headless::called("TrickOffObject");if(node) Headless::unsupported("trick object");}
 CObject::CObject():m_node(this) {m_id=1;m_type=1;mp_tags=nullptr;mp_script=nullptr;mp_manager=nullptr;m_object_flags=0;m_ref_count=0;m_stamp=0;}
-CObject::~CObject() {}
+CObject::~CObject() {delete mp_script;}
 void CObject::SetProperties(Script::CStruct*) { Headless::unsupported("object properties"); }
 bool CObject::CallMemberFunction(uint32,Script::CStruct*,Script::CScript*) { Headless::unsupported("object script command"); }
 void CObject::GetDebugInfo(Script::CStruct*) {}
@@ -88,7 +91,7 @@ void CObject::SelfEvent(uint32 event,Script::CStruct*) {
     Headless::called(("SelfEvent:"+std::to_string(event)).c_str());
     // Flat-floor profile replaces the Ollied script handler with its public
     // Jump command. The core computes tense time before emitting this event.
-    if(event!=0x8ffefb28 && event!=0x532b16ef) Headless::unsupported("unexpected skater self-event");
+    if(event!=0x8ffefb28 && event!=0x532b16ef && event!=0xafaa46ba) Headless::unsupported("unexpected skater self-event");
     if(event==0x8ffefb28) {
         Script::CStruct params;
         GetSkaterCorePhysicsComponentFromObject(static_cast<CCompositeObject*>(this))->CallMemberFunction(0x584cf9e9,&params,nullptr);
@@ -169,6 +172,7 @@ bool CSkaterCareer::GetCheat(uint32) {Headless::called("GetCheat");return false;
 namespace Mdl {
 Score::Score():m_historyTab(16),m_infoTab(8) {}
 Score::~Score() {}
+void Score::TweakTrick(int){Headless::called("Score::TweakTrick:no-scoring");}
 void Score::UpdateSpin(int) {Headless::called("Score::UpdateSpin");}
 void Score::UpdateRobotDetection(int) {Headless::called("Score::UpdateRobotDetection");}
 Skate* Skate::Instance() {static Skate s{};return &s;}

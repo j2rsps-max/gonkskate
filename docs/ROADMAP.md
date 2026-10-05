@@ -20,14 +20,17 @@
 - [ ] build standalone THUG adapter library against kisak-thug
 - [x] boot real THUG ground physics against a synthetic flat plane
 - [x] real ollie / airborne / landing loop
-- [ ] real rail acquisition + grind against synthetic rail
+- [x] real rail acquisition + rail movement against synthetic rail
+- [ ] authentic grind balance, scoring and animation integration
+- [ ] supported tricks and bail/recovery behavior
 
 ## Phase 2 — normalized world
-- [ ] triangle collision representation
-- [ ] material / terrain IDs
+- [x] triangle collision representation for the synthetic area
+- [x] per-triangle THUG terrain IDs and collision flags
 - [ ] rail spline representation
-- [ ] callback implementation for raycasts
-- [ ] callback implementation for rail lookup
+- [x] callback implementation for segment/triangle raycasts
+- [x] synthetic rail ingestion into original THUG rail manager
+- [ ] general multi-rail ingestion and callback-backed rail lookup
 - [ ] import one THUG level's collision
 - [ ] run real THUG physics on imported THUG collision
 
@@ -52,6 +55,7 @@
 - [x] standalone real-core ground/air test and Windows x64 binary
 - [x] synthetic floor, placeholder skater, follow camera and basic controller/keyboard input
 - [x] deterministic native session traces and replay checks
+- [x] shared rail/ramp geometry, grind/reset controls and slope orientation
 - [ ] validate keyboard/controller/rendering on the owner's Windows machine
 - [ ] integrate real runtime handles into the Rust backend
 

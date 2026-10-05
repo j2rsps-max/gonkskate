@@ -15,12 +15,14 @@ def run(name):
  rows=[{k:float(v) for k,v in row.items()} for row in csv.DictReader(io.StringIO(result.stdout))]
  for i,r in enumerate(rows):
   assert r['frame']==i and all(math.isfinite(x) for x in r.values()),(name,i,'nonfinite/frame')
-  assert r['state'] in (0,1) and r['rail']==-1 and r['terrain']==1,(name,i,'unexpected state/terrain')
-  assert r['y']>=0 and r['queries']>0 and r['lookups']>0,(name,i,'floor/query')
+  assert r['state'] in ((0,1,4) if name.startswith('rail') else (0,1)),(name,i,'unexpected state')
+  assert r['terrain'] in ((1,3) if name.startswith('rail') else (1,)),(name,i,'unexpected terrain')
+  assert r['rail'] in ((-1,0) if name.startswith('rail') else (-1,)),(name,i,'unexpected rail')
+  assert r['y']>=0 and (r['queries']>0 or r['state']==4 or (i and rows[i-1]['state']==4)) and r['lookups']>0,(name,i,'floor/query')
   assert r['landed']==int(i>0 and rows[i-1]['state']==1 and r['state']==0),(name,i,'landed flag')
   if i:
    d=math.hypot(r['x']-rows[i-1]['x'],r['z']-rows[i-1]['z'])
-   assert d<12,(name,i,'teleport',d)
+   assert d<(16 if name.startswith('rail') else 12),(name,i,'teleport',d)
  return result.stdout,rows
 idle,rows=run('idle');assert len(rows)==360 and all(r['x']==r['y']==r['z']==r['vx']==r['vy']==r['vz']==0 for r in rows)
 ollie,rows=run('ollie')
@@ -41,9 +43,30 @@ soak,long=run('soak');assert len(long)==10000 and sum(r['landed'] for r in long)
 inputs=''.join(' '.join(str(int(r[k])) for k in ('push','crouch','left','right','brake'))+'\n' for r in rows)
 stream=subprocess.run([*exe,'--pipe'],input=inputs,capture_output=True,text=True,check=True,timeout=30)
 assert stream.stdout==ollie,'IPC diverges from scripted input'
-bad=subprocess.run([*exe,'--pipe'],input='1 0 0 0 0\n1 2 0 0 0\n',capture_output=True,text=True,timeout=30)
-assert bad.returncode==2 and 'Invalid input frame 1' in bad.stderr
+for malformed in ['1 2 0 0 0','1 0 0 0 0 99999999999999999999','1 0 0 0 0 1.0','1 0 0 0','1 0 0 0 0 0 0 0']:
+ bad=subprocess.run([*exe,'--pipe'],input='1 0 0 0 0\n'+malformed+'\n',capture_output=True,text=True,timeout=30)
+ assert bad.returncode==2 and 'Invalid input frame 1' in bad.stderr,malformed
 probe=subprocess.run([*exe,'--probe-peripheral'],capture_output=True,text=True,timeout=30)
 assert probe.returncode==3 and 'UNSUPPORTED frame=0 Obj::CManual::DoManualPhysics()' in probe.stderr,'fail-fast diagnostic missing'
-summary={'tick_hz':60,'ollie_air_frame':165,'landing_frame':203,'apex_inches':max(r['y'] for r in rows),'soak_frames':10000,'soak_landings':55,'deterministic_sha256':hashlib.sha256(ollie.encode()).hexdigest(),'checks':['idle','ground acceleration','release-triggered ollie','air gravity','landing flag','no teleports','steering','braking','long-run repeated ollies','bit-identical replay','IPC equivalence','invalid input rejection','unimplemented peripheral traps']}
+rail_text,rail=run('rail')
+transitions=[int(r['state']) for i,r in enumerate(rail) if not i or r['state']!=rail[i-1]['state']]
+assert transitions==[0,1,4,1,0],transitions
+onrail=[r for r in rail if r['state']==4];assert len(onrail)==49 and all(r['x']==0 and r['y']==24 and r['rail']==0 for r in onrail)
+assert all(r['vz']>700 for r in onrail) and onrail[-1]['z']>1650
+assert 'SelectedGrindScript:Trick_5050_FS' in (a.output/'rail.adapters.log').read_text()
+rail_input=''.join(' '.join(str(int(r[k])) for k in ('push','crouch','left','right','brake','grind'))+'\n' for r in rail)
+replay=subprocess.run([*exe,'--pipe'],input=rail_input,capture_output=True,text=True,check=True,timeout=30)
+assert replay.stdout==rail_text,'rail IPC replay differs'
+jump_text,jump=run('rail_jump');assert jump[209]['state']==4 and jump[210]['state']==1 and jump[210]['vy']>400
+assert max(r['y'] for r in jump)>85 and sum(r['landed'] for r in jump)==1
+ramp_text,ramp=run('ramp');assert all(r['state']==0 for r in ramp) and max(r['y'] for r in ramp)==72
+slope=[r for r in ramp if 650<r['z']<950];assert len(slope)>10
+assert all(abs(r['y']-(r['z']-600)*72/400)<0.005 and abs(r['uz'])>0.15 for r in slope),'ramp contact/orientation'
+assert ramp[-1]['z']>1600 and ramp[-1]['y']==0
+# Reset during airborne/rail movement must restore spawn without a fake landing.
+reset_input=''.join(' '.join(str(int(r[k])) for k in ('push','crouch','left','right','brake','grind'))+' 0\n' for r in rail[:200])+'0 0 0 0 0 0 1\n'
+reset=subprocess.run([*exe,'--pipe'],input=reset_input,capture_output=True,text=True,check=True,timeout=30)
+last=list(csv.DictReader(io.StringIO(reset.stdout)))[-1]
+assert last['x']==last['y']==last['z']==last['vx']==last['vy']==last['vz']=='0' and last['state']=='0' and last['rail']=='-1'
+summary={'tick_hz':60,'ollie_air_frame':165,'landing_frame':203,'apex_inches':max(r['y'] for r in rows),'soak_frames':10000,'soak_landings':55,'deterministic_sha256':hashlib.sha256(ollie.encode()).hexdigest(),'rail_ticks':49,'rail_jump_release_frame':210,'ramp_height_inches':72,'checks':['rail acquisition/50-50 table/end exit','ollie off rail','rail IPC replay','ramp contact and orientation','reset to spawn','idle','ground acceleration','release-triggered ollie','air gravity','landing flag','no teleports','steering','braking','long-run repeated ollies','bit-identical replay','IPC equivalence','invalid input rejection','unimplemented peripheral traps']}
 (a.output/'summary.json').write_text(json.dumps(summary,indent=2)+'\n');print(json.dumps(summary,indent=2))

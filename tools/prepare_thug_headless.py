@@ -18,6 +18,10 @@ for p in (a.upstream / 'Code').rglob('*'):
     text = re.sub(r'(\b(\w+)<\s*_V\s*>\s*::)\2<\s*_V\s*>', r'\1\2', text)
     if p.suffix.lower() == '.h':
         text = re.sub(r'friend\s+([A-Za-z_]\w*(?:::\w+)?)\s*;', r'friend class \1;', text)
+    if rel == 'sk/objects/rail.h':
+        text = text.replace('friend class  CRailManager;', 'friend class CRailManager;\n    friend class GonkRailLoader;')
+        text = text.replace('class CRailManager : public Spt::Class\n{', 'class CRailManager : public Spt::Class\n{\n    friend class GonkRailLoader;')
+        text = text.replace('(((int)(p_node)-(int(mp_nodes)))/sizeof(CRailNode))', '(p_node-mp_nodes)')
     if rel == 'sk/engine/rectfeeler.h':
         text = text.replace('isnanf(', 'std::isnan(')
     if rel == 'gel/scripting/script.h':
@@ -56,7 +60,7 @@ typedef int64_t sint64;
 #endif
 '''
         text = text.replace(marker, types + marker, 1)
-        text = text.replace('#define __CORE_DEFINES_H', '#define __CORE_DEFINES_H\n#include <cstdint>\n#include <cstddef>\n#include <cstdio>\n#include <cstdlib>\n#include <cstring>\n#include <cmath>\n#include <iostream>\n#include <climits>\n#include <malloc.h>\n#ifdef _WIN32\ninline size_t gonk_alloc_size(void* p) { return _msize(p); }\n#else\ninline size_t gonk_alloc_size(void* p) { return malloc_usable_size(p); }\n#endif\ntypedef const char* LPCSTR;\nnamespace Obj { class CCompositeObject; }', 1)
+        text = text.replace('#define __CORE_DEFINES_H', '#define __CORE_DEFINES_H\n#include <cstdint>\n#include <cstddef>\n#include <cstdio>\n#include <cstdlib>\n#include <cstring>\n#include <cmath>\n#include <iostream>\n#include <climits>\n#include <malloc.h>\n#ifdef _WIN32\ninline size_t gonk_alloc_size(void* p) { return _msize(p); }\n#else\ninline size_t gonk_alloc_size(void* p) { return malloc_usable_size(p); }\n#endif\ntypedef const char* LPCSTR;\nnamespace Obj { class CCompositeObject; }\nnamespace Mdl { class Manager; }', 1)
     if rel == 'core/thread.h':
         text = text.replace('#ifdef __PLAT_WN32__', '#if defined(__PLAT_WN32__) || defined(__PLAT_GONK__)')
     out = a.output / rel

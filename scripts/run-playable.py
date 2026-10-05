@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch the flat-floor native THUG preview and preserve a diagnostic ZIP."""
+"""Launch the native THUG test area and preserve a diagnostic ZIP."""
 import argparse, datetime, hashlib, json, os, shutil, subprocess, sys, urllib.request, zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -7,6 +7,7 @@ STAMP=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S-%f')
 LOG=ROOT/'logs'/('playable-'+STAMP);LOG.mkdir(parents=True)
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--autotest',action='store_true')
+parser.add_argument('--area-autotest',action='store_true')
 args=parser.parse_args()
 
 def run(name,command):
@@ -42,8 +43,11 @@ exit_code=0
 started=datetime.datetime.now().timestamp()
 try:
  native=ROOT/('build/thug-headless-windows/gonkskate-thug-test.exe' if sys.platform=='win32' else 'build/thug-headless/gonkskate-thug-test')
- if not native.exists():
-  if sys.platform=='win32':raise RuntimeError('Use the full Windows preview package: it includes the native executable. Source builds currently run in Linux; see docs/FIRST_PLAYABLE_TEST.md.')
+ manifest=native.parent/'manifest.json'
+ world_hash=hashlib.sha256((ROOT/'worlds/test_area.json').read_bytes()).hexdigest()
+ world_matches=manifest.exists() and json.loads(manifest.read_text()).get('world_sha256')==world_hash
+ if not native.exists() or not world_matches:
+  if sys.platform=='win32':raise RuntimeError('Native executable missing or world data changed. Use the matching Windows preview package or rebuild the native target on Linux; see docs/TEST_AREA_PROGRESS.md.')
   run('build',[sys.executable,'tools/build_thug_headless.py'])
  run('native-checks',[sys.executable,'tools/test_thug_headless.py',native,'--output',LOG/'native'])
  engine=godot()
@@ -55,17 +59,17 @@ try:
   for key,subdir in [('XDG_DATA_HOME','data'),('XDG_CONFIG_HOME','config'),('XDG_CACHE_HOME','cache')]:
    env.setdefault(key,str(ROOT/'bin/godot'/subdir))
  command=[engine,'--path',str(ROOT/'playable')]
- if args.autotest:command+=['--headless']
- command+=['--']+(['--autotest'] if args.autotest else [])
- print('Starting GonkSkate. W pushes, A/D steer, S brakes, hold/release Space to ollie.',flush=True)
+ if args.autotest or args.area_autotest:command+=['--headless']
+ command+=['--']+(['--area-autotest'] if args.area_autotest else ['--autotest'] if args.autotest else [])
+ print('Starting GonkSkate. W pushes, A/D steer, S brakes, hold/release Space to ollie, E grinds, R resets.',flush=True)
  with (LOG/'scene.txt').open('w') as output:
   result=subprocess.run(command,cwd=ROOT,env=env,stdout=output,stderr=subprocess.STDOUT)
  if result.returncode:raise RuntimeError(f'Scene exited {result.returncode}; see {LOG/"scene.txt"}')
- if args.autotest and 'PLAYABLE_AUTOTEST passed' not in (LOG/'scene.txt').read_text():raise RuntimeError('Scene did not finish its integration test')
+ if (args.autotest or args.area_autotest) and 'PLAYABLE_AUTOTEST passed' not in (LOG/'scene.txt').read_text():raise RuntimeError('Scene did not finish its integration test')
 except Exception as error:
  exit_code=1;print(str(error),file=sys.stderr);(LOG/'error.txt').write_text(str(error)+'\n')
 finally:
- (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest},indent=2)+'\n')
+ (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest},indent=2)+'\n')
  bundle=ROOT/'logs'/f'GonkSkate-playable-results-{STAMP}.zip'
  with zipfile.ZipFile(bundle,'w',zipfile.ZIP_DEFLATED) as z:
   for file in LOG.rglob('*'):

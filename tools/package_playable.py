@@ -4,7 +4,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--godot-archive',type=Path,required=True)
-p.add_argument('--output',type=Path,default=root.parent/'GonkSkate-v0.6.0-Windows-Playable-Full-Package.zip')
+p.add_argument('--output',type=Path)
 a=p.parse_args()
 expected='266978b803f7532edc69bdd5d8c4fdced0ea97aef1224a8879616398a2559e135520e186add06b532aa92bdfeecf6ac024634024de4b3abd69f6c34e6d6d0563'
 assert hashlib.sha512(a.godot_archive.read_bytes()).hexdigest()==expected,'Godot archive hash differs from official 4.4.1 SHA512 sums'
@@ -13,9 +13,11 @@ exe=root/'build/thug-headless-windows/gonkskate-thug-test.exe'
 assert hashlib.sha256(exe.read_bytes()).hexdigest()==manifest['executable_sha256']
 assert manifest['upstream_commit']=='98b4e24921446ccd4b157453e25697f9574f0053'
 checks=json.loads((root/'logs/thug-headless-windows/summary.json').read_text())
-assert checks['soak_landings']==55
+assert checks['soak_landings']==55 and checks['rail_ticks']==49
+assert hashlib.sha256((root/'worlds/test_area.json').read_bytes()).hexdigest()==manifest['world_sha256']
 files=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0')
 version=(root/'VERSION').read_text().strip();prefix='GonkSkate-v'+version+'/'
+if a.output is None:a.output=root.parent/f'GonkSkate-v{version}-Windows-Playable-Full-Package.zip'
 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
 with zipfile.ZipFile(a.output,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as bundle:
  bundle.writestr(prefix+'RELEASE_INFO.json',json.dumps({'version':version,'source_commit':source_commit,'upstream_commit':manifest['upstream_commit'],'godot_version':'4.4.1','windows_validation':'Wine native behavior suite and scene integration; actual Windows hardware unrun'},indent=2)+'\n')

@@ -1,5 +1,8 @@
 # v0.6.0: first THUG flat-floor playable preview
 
+Historical milestone notes. The current v0.6.1 area includes a rail and ramp;
+use [TEST_AREA_PROGRESS.md](TEST_AREA_PROGRESS.md) for current controls and limits.
+
 The standalone runtime compiles the whole upstream
 `Obj::CSkaterCorePhysicsComponent` and calls its normal `Update()` at 60 Hz.
 Original state, rotation, math, pad/button and base-component code is also compiled.

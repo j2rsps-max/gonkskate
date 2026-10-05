@@ -1,6 +1,14 @@
 
 # Changelog
 
+## v0.6.1
+- Compiled original THUG rail manager and ran original rail acquisition, grind movement, rail exits and grind ollies.
+- Added a shared test-area definition with a straight rail and six-triangle ramp for collision and rendering.
+- Added finite segment/triangle collision queries with nearest/farthest and flag-mask checks.
+- Added keyboard/controller grind input, reset, slope orientation and deterministic rail/ramp/replay checks.
+- Preserved original grind selection; instrumented absent balance, animation and scoring behavior explicitly.
+- Added native ABI-header/compiler cache invalidation and world-hash validation before launch.
+
 ## v0.6.0
 - Compiled and executed the real THUG core Update with original state, rotation, math and button code.
 - Added fixed 60 Hz time, versioned CFeeler collision callback and synthetic flat-floor world.

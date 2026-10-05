@@ -1,6 +1,6 @@
 config_version=5
 [application]
-config/name="GonkSkate — THUG flat-floor test"
+config/name="GonkSkate — THUG test area"
 run/main_scene="res://main.tscn"
 [display]
 window/size/viewport_width=1280

@@ -1,7 +1,7 @@
-# GonkSkate v0.6.0 — first THUG playable preview
+# GonkSkate v0.6.1 — THUG rail and ramp test area
 
 Real THUG ground/air code now runs outside the normal rendered THUG game loop.
-The preview is a synthetic flat floor with a placeholder skater and follow camera.
+The test area has a synthetic floor, a grind rail, a ramp, a placeholder skater and follow camera.
 
 Extract the full Windows playable package into a writable folder and run:
 
@@ -10,17 +10,17 @@ Extract the full Windows playable package into a writable folder and run:
 ```
 
 W pushes, A/D steer, S brakes. Hold Space to crouch; release it to ollie.
-Escape quits. Keyboard and basic controller mappings are supported.
+Hold E to grind; press R to reset. Escape quits. Keyboard and basic controller mappings are supported.
 Python 3 is required; the package includes Godot and the native x64 executable.
 
 Return `logs\GonkSkate-playable-results-*.zip` after testing. A failed launch also
 produces that bundle. For a hands-free integration check:
 
 ```powershell
-.\RUN_PLAYABLE.cmd --autotest
+.\RUN_PLAYABLE.cmd --area-autotest
 ```
 
-Read [first playable test](docs/FIRST_PLAYABLE_TEST.md) for verified results,
+Read [test area progress](docs/TEST_AREA_PROGRESS.md) for verified results,
 build commands and profile limits. Windows native checks pass under Wine;
 actual Windows hardware testing remains outstanding.
 
