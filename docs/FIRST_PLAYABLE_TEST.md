@@ -65,6 +65,9 @@ its PowerShell 5.1 stderr fixes. `RUN_PLAYABLE.cmd` launches the authentic test.
   exits nonzero. A deliberate manual-physics probe checks this path.
 - Linux native/scene checks pass. The Windows x64 native suite and Godot 4.4.1
   scene integration check pass under Wine.
+- Linux X11 keyboard-event injection verifies W, steering, braking, crouch/release,
+  landing and Escape shutdown through the real interactive input path. The recorded
+  session replays byte-identically in the native executable.
 - The full Rust workspace, C++ ABI, stat differential (20,000 cases), parser and
   prototype backend-swap checks continue to pass.
 

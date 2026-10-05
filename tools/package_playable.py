@@ -16,7 +16,9 @@ checks=json.loads((root/'logs/thug-headless-windows/summary.json').read_text())
 assert checks['soak_landings']==55
 files=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0')
 version=(root/'VERSION').read_text().strip();prefix='GonkSkate-v'+version+'/'
+source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
 with zipfile.ZipFile(a.output,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as bundle:
+ bundle.writestr(prefix+'RELEASE_INFO.json',json.dumps({'version':version,'source_commit':source_commit,'upstream_commit':manifest['upstream_commit'],'godot_version':'4.4.1','windows_validation':'Wine native behavior suite and scene integration; actual Windows hardware unrun'},indent=2)+'\n')
  for name in files:
   if name:bundle.write(root/name,prefix+name)
  for name in ['build/thug-headless-windows/gonkskate-thug-test.exe','build/thug-headless-windows/manifest.json',

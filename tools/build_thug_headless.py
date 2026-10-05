@@ -7,7 +7,7 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--target',choices=['linux','windows'],default='linux')
 a=parser.parse_args()
 windows=a.target=='windows'
-build=root/('build/thug-headless-windows' if windows else 'build/thug-headless');code=build/'code' 
+build=root/('build/thug-headless-windows' if windows else 'build/thug-headless');code=build/'code'
 subprocess.run([sys.executable,root/'tools/prepare_thug_headless.py',root/'external/kisak-thug',code],check=True)
 g,s=physics_tables((root/'external/kisak-thug/Scripts/game/skater/physics.q').read_text())
 rows=['static const Scalar scalars[] = {']
@@ -71,4 +71,3 @@ manifest={'upstream_commit':subprocess.check_output(['git','-C',str(root/'extern
           'fail_fast_symbols':[subprocess.check_output(['c++filt',n],text=True).strip() for n in missing if any(f'{".globl" if windows else ".weak"} {n}\n' in t for t in traps)]}
 (build/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(executable)
-
