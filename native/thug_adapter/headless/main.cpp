@@ -16,16 +16,23 @@
 #include <string>
 #include <map>
 #include <vector>
-namespace Headless {void enable_rails();extern uint64 frame,collisions,lookups;extern std::map<std::string,uint64> peripheral;}
+#include <gonkskate_thug.h>
+namespace Headless {void enable_rails();void load_world(const std::string&);GonkVec3 spawn();GonkVec3 facing();extern uint64 frame,collisions,lookups;extern std::map<std::string,uint64> peripheral;}
 struct Input {int push=0,crouch=0,left=0,right=0,brake=0,grind=0,reset=0;};
 int main(int argc,char** argv) {
-    bool probe=argc==2 && std::string(argv[1])=="--probe-peripheral";
-    bool pipe=argc==2 && std::string(argv[1])=="--pipe";
-    std::string scenario=argc==3 && std::string(argv[1])=="--scenario" ? argv[2] : "ollie";
-    if((argc!=1 && !pipe && !probe && argc!=3) || (argc==3 && std::string(argv[1])!="--scenario") ||
-       (scenario!="ollie" && scenario!="idle" && scenario!="steer" && scenario!="soak" && scenario!="rail" && scenario!="rail_jump" && scenario!="ramp")) {
-        std::cerr<<"Usage: gonkskate-thug-test [--pipe | --scenario idle|ollie|steer|soak|rail|rail_jump|ramp]\n";return 2;
+    bool probe=false,pipe=false;std::string scenario="ollie",world_path;int modes=0;
+    for(int i=1;i<argc;++i){
+     std::string arg=argv[i];
+     if(arg=="--pipe"){pipe=true;++modes;}
+     else if(arg=="--probe-peripheral"){probe=true;++modes;}
+     else if(arg=="--scenario" && i+1<argc){scenario=argv[++i];++modes;}
+     else if(arg=="--world" && i+1<argc && world_path.empty())world_path=argv[++i];
+     else{std::cerr<<"Invalid argument: "<<arg<<'\n';return 2;}
     }
+    if(modes>1 || (scenario!="ollie" && scenario!="idle" && scenario!="steer" && scenario!="soak" && scenario!="rail" && scenario!="rail_jump" && scenario!="ramp")) {
+        std::cerr<<"Usage: gonkskate-thug-test [--pipe | --scenario idle|ollie|steer|soak|rail|rail_jump|ramp] [--world file.gonkworld]\n";return 2;
+    }
+    if(!world_path.empty())try{Headless::load_world(world_path);}catch(const std::exception& error){std::cerr<<"WORLD_ERROR "<<error.what()<<'\n';return 2;}
     auto skater=new Obj::CSkater;
     skater->AddComponent(new Obj::CSkaterStateComponent);
     skater->AddComponent(new Obj::CInputComponent);
@@ -40,10 +47,15 @@ int main(int argc,char** argv) {
     skater->AddComponent(new Obj::CMovableContactComponent);
     skater->AddComponent(new Obj::CSkaterSoundComponent);
     skater->AddComponent(new Obj::CSkaterFlipAndRotateComponent);
-    if(pipe || scenario=="rail" || scenario=="rail_jump" || scenario=="ramp") Headless::enable_rails();
+    if(pipe || !world_path.empty() || scenario=="rail" || scenario=="rail_jump" || scenario=="ramp") Headless::enable_rails();
     Script::CStruct params;
     for(Obj::CBaseComponent* c=GetSkaterStateComponentFromObject(skater);c;c=c->GetNext()) c->InitFromStructure(&params);
-    core->Finalize();rotate->Finalize();core->Reset();
+    auto set_spawn=[&]{
+     auto p=Headless::spawn(),f=Headless::facing();skater->m_pos.Set(p.x,p.y,p.z);skater->m_old_pos=skater->m_pos;
+     skater->m_matrix.Ident();skater->m_matrix[Z].Set(f.x,0,f.z,0);skater->m_matrix[X].Set(f.z,0,-f.x,0);
+     skater->SetDisplayMatrix(skater->m_matrix);
+    };
+    core->Finalize();rotate->Finalize();set_spawn();core->Reset();
     if(scenario=="ramp") {skater->m_pos[X]=-480;skater->m_old_pos=skater->m_pos;}
     if(probe) {Obj::CManual manual;manual.DoManualPhysics();return 1;}
     std::cout<<std::setprecision(9)<<"frame,push,crouch,left,right,brake,x,y,z,vx,vy,vz,fx,fy,fz,state,terrain,rail,landed,queries,lookups,adapter_calls,grind,reset,ux,uy,uz\n"<<std::flush;
@@ -70,7 +82,7 @@ int main(int argc,char** argv) {
             if(scenario=="soak") {input.crouch=Headless::frame%180>=120 && Headless::frame%180<150;input.left=Headless::frame%600>=200 && Headless::frame%600<300;}
         }
         auto& pad=GetInputComponentFromObject(skater)->GetControlPad();
-        if(input.reset) {pad.Zero();core->InitFromStructure(&params);core->Reset();skater->m_old_pos=skater->m_pos;}
+        if(input.reset) {pad.Zero();core->InitFromStructure(&params);set_spawn();core->Reset();skater->m_old_pos=skater->m_pos;}
         pad.m_square.Update(input.push ? 255:0);
         pad.m_x.Update(input.crouch ? 255:0);
         pad.m_left.Update(input.left ? 255:0);

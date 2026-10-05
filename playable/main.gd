@@ -27,6 +27,8 @@ var controller_ticks := 0
 var trace_path := ""
 var camera_yaw := 0.0
 var camera_pitch := 0.0
+var area: Dictionary
+var spawn_y := 0.0
 
 func mesh(parent: Node3D, shape: Mesh, color: Color, at: Vector3) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -48,6 +50,15 @@ func _ready() -> void:
 	controller_test = "--controller-autotest" in OS.get_cmdline_user_args()
 	area_test = "--area-autotest" in OS.get_cmdline_user_args() or controller_test
 	autotest = "--autotest" in OS.get_cmdline_user_args() or area_test
+	var world_path := OS.get_environment("GONK_WORLD_JSON")
+	if world_path.is_empty():
+		world_path = "res://../worlds/test_area.json"
+	var parsed_world = JSON.parse_string(FileAccess.get_file_as_string(world_path))
+	if not parsed_world is Dictionary:
+		stop_with_error("Cannot read the selected world. Run the playable launcher.")
+		return
+	area = parsed_world
+	spawn_y = float(area.get("spawn",[0,0,0])[1])
 	add_child(skater)
 	skater.add_child(body)
 	box(skater, Vector3(0.23,0.035,0.81), Vector3(0,0.06,0), Color("ffb546"))
@@ -77,7 +88,7 @@ func _ready() -> void:
 	floor_material.shader = shader
 	floor_mesh.material_override = floor_material
 	add_child(floor_mesh)
-	var area: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../worlds/test_area.json"))
+	floor_mesh.visible = area["floor"]
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	for triangle in area["triangles"]:
@@ -94,17 +105,23 @@ func _ready() -> void:
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	var ramp := ArrayMesh.new()
-	ramp.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-	mesh(self,ramp,Color("9ca89b"),Vector3.ZERO)
+	if not vertices.is_empty():
+		ramp.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		var geometry := mesh(self,ramp,Color("9ca89b"),Vector3.ZERO)
+		# Shared world-space grid helps judge movement on untextured imports.
+		geometry.material_override = floor_material
 	for rail in area["rails"]:
-		var start: Array = rail["points"][0]
-		var end: Array = rail["points"][1]
-		var a := Vector3(start[0],start[1],start[2])*INCH_TO_METER
-		var b := Vector3(end[0],end[1],end[2])*INCH_TO_METER
-		var bar := box(self,Vector3(0.06,0.06,a.distance_to(b)),(a+b)/2,Color("f4bf60"))
-		bar.basis = Basis.looking_at(a-b)
-		for point in [a,b]:
-			box(self,Vector3(0.04,point.y,0.04),Vector3(point.x,point.y/2,point.z),Color("8a969e"))
+		for i in range(rail["points"].size()-1):
+			var start: Array = rail["points"][i]
+			var end: Array = rail["points"][i+1]
+			var a := Vector3(start[0],start[1],start[2])*INCH_TO_METER
+			var b := Vector3(end[0],end[1],end[2])*INCH_TO_METER
+			var bar := box(self,Vector3(0.06,0.06,a.distance_to(b)),(a+b)/2,Color("f4bf60"))
+			bar.basis = Basis.looking_at(a-b)
+		for point_array in rail["points"]:
+			var point := Vector3(point_array[0],point_array[1],point_array[2])*INCH_TO_METER
+			if point.y > 0:
+				box(self,Vector3(0.04,point.y,0.04),Vector3(point.x,point.y/2,point.z),Color("8a969e"))
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-45,-30,0)
 	light.light_energy = 1.5
@@ -135,7 +152,7 @@ func _ready() -> void:
 	status.position = Vector2(38,110)
 	status.add_theme_font_size_override("font_size",15)
 	status.text = "W / ↑ push     A D / ← → steer     S / ↓ brake\nHold Space to crouch; release to ollie. E holds grind. R resets.
-Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Right stick looks."
+Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Right stick looks."
 	layer.add_child(status)
 	var exe := OS.get_environment("GONK_THUG_EXE")
 	if exe.is_empty():
@@ -145,7 +162,11 @@ Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push,
 	if not FileAccess.file_exists(exe):
 		stop_with_error("Native executable missing. Run the playable launcher.\n" + exe)
 		return
-	process = OS.execute_with_pipe(exe, ["--pipe"], true)
+	var native_args := PackedStringArray(["--pipe"])
+	var binary_world := OS.get_environment("GONK_WORLD_BINARY")
+	if not binary_world.is_empty():
+		native_args.append_array(PackedStringArray(["--world",binary_world]))
+	process = OS.execute_with_pipe(exe, native_args, true)
 	if process.is_empty():
 		stop_with_error("Could not start the native THUG process.")
 		return
@@ -239,7 +260,7 @@ func _physics_process(delta: float) -> void:
 	trace.flush()
 	var position_inches := Vector3(float(fields[6]),float(fields[7]),float(fields[8]))
 	skater.position = position_inches*INCH_TO_METER
-	apex = maxf(apex,position_inches.y)
+	apex = maxf(apex,position_inches.y-spawn_y)
 	landings += int(fields[18])
 	var forward := Vector3(float(fields[12]),float(fields[13]),float(fields[14])).normalized()
 	var up := Vector3(float(fields[24]),float(fields[25]),float(fields[26])).normalized()
@@ -254,7 +275,7 @@ func _physics_process(delta: float) -> void:
 	camera.position = camera.position.lerp(skater.position+camera_back*6+Vector3.UP*(3.4+camera_pitch*3),1-exp(-6*delta))
 	camera.look_at(skater.position+Vector3.UP*0.95)
 	var velocity := Vector3(float(fields[9]),float(fields[10]),float(fields[11]))
-	hud.text = "GONKSKATE  /  THUG test area\n%s   %.1f km/h   frame %d\n" % ["RAIL" if int(fields[15])==4 else ("AIR" if int(fields[15])==1 else "GROUND"),velocity.length()*INCH_TO_METER*3.6,frame]
+	hud.text = "GONKSKATE  /  %s\nTHUG  ·  %s   %.1f km/h   frame %d\n" % [area.get("name","Test area"),"RAIL" if int(fields[15])==4 else ("AIR" if int(fields[15])==1 else "GROUND"),velocity.length()*INCH_TO_METER*3.6,frame]
 	frame += 1
 	if frame==185 and "--screenshot" in OS.get_cmdline_user_args():
 		capture_preview()

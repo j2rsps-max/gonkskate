@@ -1,6 +1,16 @@
 
 # Changelog
 
+## v0.6.6
+- Added validated runtime world loading with shared float32 collision/render geometry, spawn/facing and original multi-rail ingestion.
+- Added an indexed triangle bridge with 15,000 seeded differential queries and stable nearest/farthest/flag/tie behavior.
+- Added local triangulated OBJ and Skate3Recomp scene/buffer/memory-snapshot importers, with authentic fingerprint checks.
+- Added a Windows F10 capture launcher that opens imported scenery using real THUG physics. Retail capture validation remains pending.
+- Added an original raised courtyard OBJ demo and world selection without rebuilding the native executable.
+- Tested imported-format ground/air, landing, reset, multiple rails, replay and malformed-world rejection on Linux/Windows under Wine.
+- Excluded captured memory and imported world geometry from diagnostic ZIPs and release packages.
+- Original Skate collision/materials/rails and live Skate physics integration remain pending.
+
 ## v0.6.5
 - Implemented a host controller driver using the actual ReXGlue InputDriver interface and original InputSystem.
 - Added an exclusive host input factory, connection/capabilities reporting, raw settings input and optional rumble request feedback.

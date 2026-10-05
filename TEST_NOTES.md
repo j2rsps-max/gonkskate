@@ -1,5 +1,10 @@
 # Windows test pass
 
+v0.6.6 priority: follow [Skate world import](docs/SKATE3_WORLD_IMPORT.md).
+First run `RUN_PLAYABLE.cmd --world worlds\courtyard.json`, then the local Skate
+capture command. Return capture-results and playable-results ZIPs only.
+The controller and reference checks below remain available.
+
 v0.6.5 adds original-SDK host driver checks to `RUN_SKATE3_CHECK.cmd`:
 `native-sdk-check.txt` must contain both `SKATE3_DRIVER_TEST passed` and
 `SKATE3_INPUT_TEST passed`. These verify SDK input routing, not a retail guest run.

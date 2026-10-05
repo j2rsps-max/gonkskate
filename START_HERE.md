@@ -1,10 +1,10 @@
-# GonkSkate v0.6.5 — real SDK host controller driver
+# GonkSkate v0.6.6 — runtime worlds and Skate scenery capture
 
-Start with [TEST_NOTES.md](TEST_NOTES.md) for this update’s exact Windows test pass.
-`RUN_SKATE3_CHECK.cmd` opens the controller lab and reports optional local game metadata.
-Skate gameplay is not running inside GonkSkate yet.
-The controller checker now tests our host driver through the original SDK input
-system, including settings open/close and rumble request filtering.
+Start with [Skate world import](docs/SKATE3_WORLD_IMPORT.md) for the new combination test.
+Try `RUN_PLAYABLE.cmd --world worlds\courtyard.json` immediately, then capture an
+area using `RUN_SKATE3_CAPTURE.cmd --exe "YOUR_INSTALLED_SKATE3_EXE"`.
+This runs authentic THUG physics on imported render triangles. The first real
+Skate capture needs your PC test; Skate guest gameplay is not embedded here.
 
 Real THUG ground/air code now runs outside the normal rendered THUG game loop.
 The test area has a synthetic floor, a grind rail, a ramp, a placeholder skater and follow camera.

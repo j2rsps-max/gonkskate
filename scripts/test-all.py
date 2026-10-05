@@ -41,6 +41,7 @@ try:
         smoke = next(build.rglob('gonkskate_abi_smoke.exe'))
     run('abi-smoke', [smoke])
     run('q-parser-tests', [sys.executable, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_thug_q.py', '-v'])
+    run('world-import-formats', [sys.executable, 'tools/test_world_import.py'])
     upstream = ROOT / 'external/kisak-thug'
     if not upstream.exists():
         run('thug-clone', ['git', 'clone', '--depth', '1', 'https://github.com/SwagSoftware/kisak-thug.git', upstream])
@@ -68,6 +69,8 @@ try:
         run('real-core-build', [sys.executable, 'tools/build_thug_headless.py'])
     if executable.exists():
         run('real-core-behavior', [sys.executable, 'tools/test_thug_headless.py', executable, '--output', LOG / 'real-core'])
+        run('imported-world-behavior', [sys.executable, 'tools/test_world_import.py', '--executable', executable,
+                                       '--output', ROOT / 'logs/world-import'])
         authentic_status = 'PASS: real-core synthetic flat-floor profile'
     else:
         results.append({'stage':'real-core-behavior','status':'UNRUN: use Windows preview package or build on Linux'})

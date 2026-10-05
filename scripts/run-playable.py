@@ -3,12 +3,15 @@
 import argparse, datetime, hashlib, json, os, shutil, subprocess, sys, urllib.request, zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'tools'))
+from gonk_world import load as load_world, encode as encode_world
 STAMP=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S-%f')
 LOG=ROOT/'logs'/('playable-'+STAMP);LOG.mkdir(parents=True)
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--autotest',action='store_true')
 parser.add_argument('--area-autotest',action='store_true')
 parser.add_argument('--controller-autotest',action='store_true')
+parser.add_argument('--world',type=Path,default=ROOT/'worlds/test_area.json',help='Shared normalized world JSON')
 args=parser.parse_args()
 
 def run(name,command,environment=None):
@@ -42,20 +45,30 @@ def godot():
 
 exit_code=0
 started=datetime.datetime.now().timestamp()
+world_report={}
 try:
  native=ROOT/('build/thug-headless-windows/gonkskate-thug-test.exe' if sys.platform=='win32' else 'build/thug-headless/gonkskate-thug-test')
  manifest=native.parent/'manifest.json'
- world_hash=hashlib.sha256((ROOT/'worlds/test_area.json').read_bytes()).hexdigest()
- world_matches=manifest.exists() and json.loads(manifest.read_text()).get('world_sha256')==world_hash
+ selected=load_world(args.world)
+ world_binary=LOG/'selected-world.gonkworld';world_binary.write_bytes(encode_world(selected))
+ # Freeze the exact float32 geometry sent to physics for the renderer too.
+ world_json=LOG/'selected-world.json';world_json.write_text(json.dumps(selected,separators=(',',':'))+'\n')
+ world_report={'name':selected.get('name','Test area'),'source_game':selected.get('source_game','synthetic'),
+               'json_sha256':hashlib.sha256(world_json.read_bytes()).hexdigest(),
+               'binary_sha256':hashlib.sha256(world_binary.read_bytes()).hexdigest(),
+               'triangles':len(selected['triangles']),'rails':len(selected['rails'])}
+ world_matches=manifest.exists() and json.loads(manifest.read_text()).get('runtime_world_version')==1
  if not native.exists() or not world_matches:
-  if sys.platform=='win32':raise RuntimeError('Native executable missing or world data changed. Use the matching Windows preview package or rebuild the native target on Linux; see docs/TEST_AREA_PROGRESS.md.')
+  if sys.platform=='win32':raise RuntimeError('Native executable lacks runtime world loading. Use the v0.6.6 or later Windows preview package.')
   run('build',[sys.executable,'tools/build_thug_headless.py'])
+ if hashlib.sha256(native.read_bytes()).hexdigest()!=json.loads(manifest.read_text())['executable_sha256']:raise RuntimeError('Native executable hash differs from build manifest')
  run('native-checks',[sys.executable,'tools/test_thug_headless.py',native,'--output',LOG/'native'])
  engine=godot()
  probe_env=os.environ.copy();probe_env.setdefault('XDG_CACHE_HOME',str(ROOT/'bin/godot/cache'))
  probe=subprocess.check_output([engine,'--version'],text=True,env=probe_env,stderr=subprocess.STDOUT).strip().splitlines()[-1].split('.')[0:2]
  if len(probe)!=2 or (int(probe[0]),int(probe[1]))<(4,4):raise RuntimeError('Godot 4.4 or later is required for native-process pipes')
  env=os.environ.copy();env['GONK_THUG_EXE']=str(native)
+ env['GONK_WORLD_JSON']=str(world_json.resolve());env['GONK_WORLD_BINARY']=str(world_binary.resolve())
  if sys.platform!='win32':
   for key,subdir in [('XDG_DATA_HOME','data'),('XDG_CONFIG_HOME','config'),('XDG_CACHE_HOME','cache')]:
    env.setdefault(key,str(ROOT/'bin/godot'/subdir))
@@ -71,11 +84,13 @@ try:
 except Exception as error:
  exit_code=1;print(str(error),file=sys.stderr);(LOG/'error.txt').write_text(str(error)+'\n')
 finally:
- (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest,'controller_autotest':args.controller_autotest},indent=2)+'\n')
+ (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest,'controller_autotest':args.controller_autotest,'world':world_report},indent=2)+'\n')
  bundle=ROOT/'logs'/f'GonkSkate-playable-results-{STAMP}.zip'
  with zipfile.ZipFile(bundle,'w',zipfile.ZIP_DEFLATED) as z:
   for file in LOG.rglob('*'):
-   if file.is_file():z.write(file,file.relative_to(LOG))
+   # World data stays local: result ZIPs contain identity/counts/traces, not
+   # imported retail-derived geometry.
+   if file.is_file() and file.name not in ['selected-world.json','selected-world.gonkworld']:z.write(file,file.relative_to(LOG))
   for file in (ROOT/'logs').glob('playable-*.csv*'):
    if file.stat().st_mtime>=started:z.write(file,'session/'+file.name)
  print('Result bundle:',bundle,flush=True)

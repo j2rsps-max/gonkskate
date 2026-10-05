@@ -56,7 +56,7 @@ header_hash.update((build/'physics_scalars.inc').read_bytes())
 header_hash.update((build/'grind_table.inc').read_bytes())
 header_hash.update((build/'test_world.inc').read_bytes())
 objects=[]
-for unit in [code/u for u in units]+[root/'native/thug_adapter/headless/runtime.cpp',root/'native/thug_adapter/headless/main.cpp',root/'native/thug_adapter/headless/rail_runtime.cpp',root/'native/thug_adapter/src/thug_params.cpp',root/'native/thug_adapter/src/thug_flat_world.cpp',root/'native/thug_adapter/src/thug_mesh_world.cpp']:
+for unit in [code/u for u in units]+[root/'native/thug_adapter/headless/runtime.cpp',root/'native/thug_adapter/headless/main.cpp',root/'native/thug_adapter/headless/rail_runtime.cpp',root/'native/thug_adapter/src/thug_params.cpp',root/'native/thug_adapter/src/thug_flat_world.cpp',root/'native/thug_adapter/src/thug_mesh_world.cpp',root/'native/thug_adapter/src/gonk_world.cpp']:
  obj=build/(unit.stem+'.o');objects.append(obj)
  digest=hashlib.sha256(header_hash.digest()+unit.read_bytes()).hexdigest()
  stamp=obj.with_suffix('.sha256')
@@ -86,7 +86,7 @@ subprocess.run([cxx,*flags,'-c',str(build/'traps.S'),'-o',str(build/'traps.o')],
 executable=build/('gonkskate-thug-test.exe' if windows else 'gonkskate-thug-test')
 subprocess.run([cxx,*flags,*map(str,objects),str(build/'traps.o'),'-Wl,--gc-sections',*(['-static','-pthread'] if windows else []),'-o',str(executable)],env=environ,check=True)
 manifest={'upstream_commit':subprocess.check_output(['git','-C',str(root/'external/kisak-thug'),'rev-parse','HEAD'],text=True).strip(),
-          'world_sha256':hashlib.sha256((root/'worlds/test_area.json').read_bytes()).hexdigest(),'target':a.target,'tick_hz':60,'units':[str(u.relative_to(root)) for u in [code/u for u in units]],
+          'world_sha256':hashlib.sha256((root/'worlds/test_area.json').read_bytes()).hexdigest(),'runtime_world_version':1,'target':a.target,'tick_hz':60,'units':[str(u.relative_to(root)) for u in [code/u for u in units]],
           'core_source_sha256':hashlib.sha256((root/'external/kisak-thug/Code/Sk/Components/SkaterCorePhysicsComponent.cpp').read_bytes()).hexdigest(),
           'executable_sha256':hashlib.sha256(executable.read_bytes()).hexdigest(),
           'fail_fast_symbols':[subprocess.check_output(['c++filt',n],text=True).strip() for n in missing if any(f'{".globl" if windows else ".weak"} {n}\n' in t for t in traps)]}

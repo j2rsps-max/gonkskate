@@ -1,4 +1,4 @@
-# GonkSkate v0.6.5
+# GonkSkate v0.6.6
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -15,6 +15,15 @@ Long-term combinations include:
 - THUG map + Skate 3 physics
 - Skate 3 map + THUG physics
 - Skate 3 map + Skate 3 physics
+
+## First cross-world test
+
+The new runtime loads worlds without rebuilding. Run `RUN_PLAYABLE.cmd --world worlds\courtyard.json`
+for an original OBJ demo. `RUN_SKATE3_CAPTURE.cmd --exe "YOUR_INSTALLED_SKATE3_EXE"`
+can capture local Skate scenery and open it with authentic THUG physics.
+Read [capture and import instructions](docs/SKATE3_WORLD_IMPORT.md).
+Source-format fixtures pass; the first owner retail capture remains unverified.
+This uses visible triangles with generic concrete, not original Skate collision or gameplay.
 
 ## First playable preview
 
@@ -38,7 +47,8 @@ The Rust FFI links the tested native stat evaluator; integrating the full native
 runtime into the Rust backend is next. Rust's selectable THUG/Skate3 simulation
 backends are still prototypes. Original rail acquisition and rail physics now run against a synthetic rail.
 Shared triangle geometry drives native collision and rendering. Balance, trick
-animations, scoring, bails and imported map collision remain future work.
+animations, scoring and bails remain future work. Runtime imported triangles are
+supported; authentic game-format collision and metadata import remain pending.
 
 Controller support is required for both gameplay backends. See
 [controller support](docs/CONTROLLER_SUPPORT.md) for mappings, tests and current limits.

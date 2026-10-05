@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "units": "inch",
+  "name": "Gonk concrete courtyard (OBJ import demo)",
+  "source_game": "local-geometry",
+  "floor": false,
+  "spawn": [
+    0.0,
+    120.0,
+    0.0
+  ],
+  "triangles": [
+    {
+      "vertices": [
+        [
+          -3600.0,
+          120.0,
+          -6000.0
+        ],
+        [
+          -3600.0,
+          120.0,
+          6000.0
+        ],
+        [
+          3600.0,
+          120.0,
+          -6000.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          3600.0,
+          120.0,
+          -6000.0
+        ],
+        [
+          -3600.0,
+          120.0,
+          6000.0
+        ],
+        [
+          3600.0,
+          120.0,
+          6000.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          -600.0,
+          120.0,
+          600.0
+        ],
+        [
+          -600.0,
+          192.0,
+          1000.0
+        ],
+        [
+          -360.0,
+          120.0,
+          600.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          -360.0,
+          120.0,
+          600.0
+        ],
+        [
+          -600.0,
+          192.0,
+          1000.0
+        ],
+        [
+          -360.0,
+          192.0,
+          1000.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          -600.0,
+          192.0,
+          1000.0
+        ],
+        [
+          -600.0,
+          192.0,
+          1200.0
+        ],
+        [
+          -360.0,
+          192.0,
+          1000.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          -360.0,
+          192.0,
+          1000.0
+        ],
+        [
+          -600.0,
+          192.0,
+          1200.0
+        ],
+        [
+          -360.0,
+          192.0,
+          1200.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          -600.0,
+          192.0,
+          1200.0
+        ],
+        [
+          -600.0,
+          120.0,
+          1600.0
+        ],
+        [
+          -360.0,
+          192.0,
+          1200.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    },
+    {
+      "vertices": [
+        [
+          -360.0,
+          192.0,
+          1200.0
+        ],
+        [
+          -600.0,
+          120.0,
+          1600.0
+        ],
+        [
+          -360.0,
+          120.0,
+          1600.0
+        ]
+      ],
+      "flags": 1,
+      "terrain": 1
+    }
+  ],
+  "rails": [
+    {
+      "points": [
+        [
+          0,
+          144,
+          1080
+        ],
+        [
+          0,
+          144,
+          1680
+        ]
+      ],
+      "terrain": 3
+    },
+    {
+      "points": [
+        [
+          1200,
+          144,
+          700
+        ],
+        [
+          1200,
+          144,
+          1300
+        ],
+        [
+          1200,
+          144,
+          1900
+        ]
+      ],
+      "terrain": 3
+    }
+  ],
+  "provenance": {
+    "importer": "obj-v1",
+    "file": "courtyard.obj",
+    "sha256": "dce54b2c5a2306630ddf3aafef4ec0821fd2226ba6f0289d55318b83d8571e5e",
+    "source_units": "inch",
+    "source_up": "y",
+    "flipped_winding": false,
+    "collision": "geometry-derived; generic concrete; no source skating metadata",
+    "metadata": "Original synthetic geometry; rail annotations supplied by GonkSkate, not inferred from OBJ"
+  },
+  "facing": [
+    0.0,
+    0.0,
+    1.0
+  ]
+}

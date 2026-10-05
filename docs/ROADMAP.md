@@ -30,7 +30,11 @@
 - [ ] rail spline representation
 - [x] callback implementation for segment/triangle raycasts
 - [x] synthetic rail ingestion into original THUG rail manager
-- [ ] general multi-rail ingestion and callback-backed rail lookup
+- [x] general multi-rail ingestion into original THUG rail manager
+- [ ] callback-backed rail lookup
+- [x] runtime world selection, validated binary transport and indexed collision
+- [x] triangulated OBJ and Skate render-recording importers with original demo/format fixtures
+- [ ] validate a retail Skate render capture on owner hardware
 - [ ] import one THUG level's collision
 - [ ] run real THUG physics on imported THUG collision
 
@@ -50,7 +54,8 @@
 
 ## Phase 4 — cross-map proof
 - [ ] normalize one small Skate 3 collision area
-- [ ] THUG physics on Skate 3 geometry
+- [x] real THUG physics on source-derived Skate-format geometry fixtures
+- [ ] real THUG physics on a locally captured retail Skate area
 - [ ] normalize one THUG collision area
 - [ ] Skate 3 physics on THUG geometry
 - [ ] map + physics selection UI
