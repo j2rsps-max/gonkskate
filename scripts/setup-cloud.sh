@@ -25,4 +25,4 @@ fi
 # Do not reset or update a user's existing reference checkout.
 python3 scripts/setup-native-tools.py
 python3 scripts/test-all.py
-python3 scripts/run-playable.py --area-autotest
+python3 scripts/run-playable.py --controller-autotest

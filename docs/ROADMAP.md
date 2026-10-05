@@ -79,3 +79,22 @@ on local game/mod files; retail character assets are not bundled. Keep the
 procedural mannequin until ground/air, rails and imported world collision are
 stable. Animation fidelity will require its own validation rather than assuming
 all games share a skeleton.
+
+## Required controller support for both backends
+
+Controller play is a release requirement for THUG and Skate, including USB and
+wireless Xbox/PlayStation-compatible devices where the host supports them.
+
+- [x] THUG preview: configurable button bindings, deadzones, D-pad, pause/reset
+- [x] preserve both sticks and both analog triggers independently in controller traces
+- [x] deterministic controller-event input through the original THUG core
+- [x] pause on active-controller disconnect; reconnect and resume without stale input
+- [ ] owner validation on real Windows hardware, USB and wireless
+- [ ] in-game binding/device selection and calibration UI
+- [ ] integrate device snapshots into the Rust host/backend input boundary
+- [ ] authentic Skate dual-stick/Flick-It and trigger injection after locating its input boundary
+- [ ] independently saved THUG/Skate control profiles and controller-aware prompts
+
+The Skate backend is still a prototype. Preserving analog readings does not
+establish an authentic Skate control adapter. Do not collapse its right stick
+into THUG's directional buttons or infer its input boundary without research.

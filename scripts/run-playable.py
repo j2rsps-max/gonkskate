@@ -8,12 +8,13 @@ LOG=ROOT/'logs'/('playable-'+STAMP);LOG.mkdir(parents=True)
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--autotest',action='store_true')
 parser.add_argument('--area-autotest',action='store_true')
+parser.add_argument('--controller-autotest',action='store_true')
 args=parser.parse_args()
 
-def run(name,command):
+def run(name,command,environment=None):
  print(f'{name}: '+str(command[0]),flush=True)
  with (LOG/(name+'.txt')).open('w') as output:
-  subprocess.run(list(map(str,command)),cwd=ROOT,stdout=output,stderr=subprocess.STDOUT,check=True)
+  subprocess.run(list(map(str,command)),cwd=ROOT,stdout=output,stderr=subprocess.STDOUT,check=True,env=environment)
 
 def godot():
  custom=os.environ.get('GONK_GODOT')
@@ -58,18 +59,19 @@ try:
  if sys.platform!='win32':
   for key,subdir in [('XDG_DATA_HOME','data'),('XDG_CONFIG_HOME','config'),('XDG_CACHE_HOME','cache')]:
    env.setdefault(key,str(ROOT/'bin/godot'/subdir))
+ run('controller-checks',[engine,'--headless','--path',ROOT/'playable','--script','res://test_controller.gd'],env)
  command=[engine,'--path',str(ROOT/'playable')]
- if args.autotest or args.area_autotest:command+=['--headless']
- command+=['--']+(['--area-autotest'] if args.area_autotest else ['--autotest'] if args.autotest else [])
+ if args.autotest or args.area_autotest or args.controller_autotest:command+=['--headless']
+ command+=['--']+(['--controller-autotest'] if args.controller_autotest else ['--area-autotest'] if args.area_autotest else ['--autotest'] if args.autotest else [])
  print('Starting GonkSkate. W pushes, A/D steer, S brakes, hold/release Space to ollie, E grinds, R resets.',flush=True)
  with (LOG/'scene.txt').open('w') as output:
   result=subprocess.run(command,cwd=ROOT,env=env,stdout=output,stderr=subprocess.STDOUT)
  if result.returncode:raise RuntimeError(f'Scene exited {result.returncode}; see {LOG/"scene.txt"}')
- if (args.autotest or args.area_autotest) and 'PLAYABLE_AUTOTEST passed' not in (LOG/'scene.txt').read_text():raise RuntimeError('Scene did not finish its integration test')
+ if (args.autotest or args.area_autotest or args.controller_autotest) and 'PLAYABLE_AUTOTEST passed' not in (LOG/'scene.txt').read_text():raise RuntimeError('Scene did not finish its integration test')
 except Exception as error:
  exit_code=1;print(str(error),file=sys.stderr);(LOG/'error.txt').write_text(str(error)+'\n')
 finally:
- (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest},indent=2)+'\n')
+ (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest,'controller_autotest':args.controller_autotest},indent=2)+'\n')
  bundle=ROOT/'logs'/f'GonkSkate-playable-results-{STAMP}.zip'
  with zipfile.ZipFile(bundle,'w',zipfile.ZIP_DEFLATED) as z:
   for file in LOG.rglob('*'):

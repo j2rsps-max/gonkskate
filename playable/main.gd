@@ -17,7 +17,13 @@ var landings := 0
 var failed := false
 var rail_frames := 0
 var wants_reset := false
+var controller = preload("res://controller_input.gd").new()
+var controller_trace: FileAccess
+var paused := false
+var wants_pause := false
 var area_test := false
+var controller_test := false
+var controller_ticks := 0
 var trace_path := ""
 
 func mesh(parent: Node3D, shape: Mesh, color: Color, at: Vector3) -> MeshInstance3D:
@@ -37,7 +43,8 @@ func box(parent: Node3D, size: Vector3, at: Vector3, color: Color) -> MeshInstan
 	return mesh(parent, shape, color, at)
 
 func _ready() -> void:
-	area_test = "--area-autotest" in OS.get_cmdline_user_args()
+	controller_test = "--controller-autotest" in OS.get_cmdline_user_args()
+	area_test = "--area-autotest" in OS.get_cmdline_user_args() or controller_test
 	autotest = "--autotest" in OS.get_cmdline_user_args() or area_test
 	add_child(skater)
 	skater.add_child(body)
@@ -126,7 +133,7 @@ func _ready() -> void:
 	status.position = Vector2(38,110)
 	status.add_theme_font_size_override("font_size",15)
 	status.text = "W / ↑ push     A D / ← → steer     S / ↓ brake\nHold Space to crouch; release to ollie. E holds grind. R resets.
-Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push, A ollie, Y grind, left stick steer/brake."
+Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets."
 	layer.add_child(status)
 	var exe := OS.get_environment("GONK_THUG_EXE")
 	if exe.is_empty():
@@ -152,6 +159,7 @@ Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push,
 	if trace == null:
 		stop_with_error("Cannot create the session trace: " + trace_path)
 		return
+	controller_trace = FileAccess.open(trace_path+".controller.jsonl",FileAccess.WRITE)
 	trace.store_line(header)
 	print("Session trace: ",trace_path)
 
@@ -170,22 +178,47 @@ func _physics_process(delta: float) -> void:
 	var right := pressed(KEY_D) or pressed(KEY_RIGHT)
 	var grind := pressed(KEY_E)
 	var brake := pressed(KEY_S) or pressed(KEY_DOWN)
-	var pads := Input.get_connected_joypads()
-	if not pads.is_empty():
-		var pad: int = pads[0]
-		push = push or Input.is_joy_button_pressed(pad,JOY_BUTTON_X)
-		grind = grind or Input.is_joy_button_pressed(pad,JOY_BUTTON_Y)
-		crouch = crouch or Input.is_joy_button_pressed(pad,JOY_BUTTON_A)
-		left = left or Input.get_joy_axis(pad,JOY_AXIS_LEFT_X)<-0.2
-		right = right or Input.get_joy_axis(pad,JOY_AXIS_LEFT_X)>0.2
-		brake = brake or Input.get_joy_axis(pad,JOY_AXIS_LEFT_Y)>0.5
-	if autotest:
+	if controller_test:
+		# Exercise Godot joypad events and real mapping, without a physical device.
+		for action in ["push","crouch","grind","pause"]:
+			var event := InputEventJoypadButton.new()
+			event.device = 7
+			event.button_index = int(controller.config["thug_buttons"][action])
+			event.pressed = (action=="push" and frame>=30) or (action=="crouch" and frame>=150 and frame<165) or (action=="grind" and frame>=165) or (action=="pause" and controller_ticks in [70,75])
+			Input.parse_input_event(event)
+		Input.flush_buffered_events()
+		controller_ticks += 1
+	var snapshot: Dictionary = controller.read([7] if controller_test else null)
+	var pad: Dictionary = controller.actions(snapshot)
+	if not autotest or controller_test:
+		if snapshot["disconnected"]:
+			paused = true
+		if pad["pause"] or wants_pause:
+			paused = not paused
+		wants_pause = false
+		if paused:
+			hud.text = "GONKSKATE / PAUSED — Start or Enter to resume"
+			return
+		push = push or pad["push"]
+		grind = grind or pad["grind"]
+		crouch = crouch or pad["crouch"]
+		left = left or pad["left"]
+		right = right or pad["right"]
+		brake = brake or pad["brake"]
+		wants_reset = wants_reset or pad["reset"]
+	if autotest and not controller_test:
 		push = frame>=30
 		crouch = frame>=150 and frame<165
 		left = false
 		right = false
 		brake = false
 		grind = area_test and frame>=165
+	var ls: Vector2 = snapshot["left_stick"]
+	var rs: Vector2 = snapshot["right_stick"]
+	var raw_ls: Vector2 = snapshot["left_stick_raw"]
+	var raw_rs: Vector2 = snapshot["right_stick_raw"]
+	controller_trace.store_line(JSON.stringify({"frame":frame,"device":snapshot["device"],"buttons":snapshot["buttons"],"left_stick":[ls.x,ls.y],"right_stick":[rs.x,rs.y],"left_stick_raw":[raw_ls.x,raw_ls.y],"right_stick_raw":[raw_rs.x,raw_rs.y],"left_trigger":snapshot["left_trigger"],"right_trigger":snapshot["right_trigger"]}))
+	controller_trace.flush()
 	stream.store_line("%d %d %d %d %d %d %d" % [int(push),int(crouch),int(left),int(right),int(brake),int(grind),int(wants_reset)])
 	wants_reset = false
 	stream.flush()
@@ -218,10 +251,15 @@ func _physics_process(delta: float) -> void:
 		if landings!=1 or apex<60 or apex>66 or (area_test and rail_frames<40):
 			stop_with_error("Scene integration failed: apex=%f landings=%d" % [apex,landings])
 		else:
+			if controller_test and controller_ticks!=365:
+				stop_with_error("Controller pause/resume did not suspend five native ticks")
+				return
 			print("PLAYABLE_AUTOTEST passed: 360 native ticks, one ollie and landing, rail ticks=",rail_frames,", apex=",apex)
 			get_tree().quit()
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.physical_keycode==KEY_ENTER and event.pressed and not event.echo:
+		wants_pause = true
 	if event is InputEventKey and event.physical_keycode==KEY_R and event.pressed and not event.echo:
 		wants_reset = true
 
@@ -238,6 +276,8 @@ func stop_with_error(message: String) -> void:
 		get_tree().quit(1)
 
 func _exit_tree() -> void:
+	if controller_trace != null:
+		controller_trace.close()
 	if trace != null:
 		trace.close()
 	if not process.is_empty():

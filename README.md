@@ -1,4 +1,4 @@
-# GonkSkate v0.6.1
+# GonkSkate v0.6.2
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -39,3 +39,6 @@ runtime into the Rust backend is next. Rust's selectable THUG/Skate3 simulation
 backends are still prototypes. Original rail acquisition and rail physics now run against a synthetic rail.
 Shared triangle geometry drives native collision and rendering. Balance, trick
 animations, scoring, bails and imported map collision remain future work.
+
+Controller support is required for both gameplay backends. See
+[controller support](docs/CONTROLLER_SUPPORT.md) for mappings, tests and current limits.

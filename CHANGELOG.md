@@ -1,6 +1,13 @@
 
 # Changelog
 
+## v0.6.2
+- Made controller support a required milestone for both THUG and Skate backends.
+- Added configurable THUG controller bindings, radial deadzones and independent dual-stick/trigger capture.
+- Added controller pause/reset, D-pad directions and disconnect-to-pause behavior.
+- Added deterministic Godot controller-event tests and a real-core controller integration scenario with pause/resume.
+- Saved per-tick controller snapshots alongside native traces in diagnostic ZIPs.
+
 ## v0.6.1
 - Compiled original THUG rail manager and ran original rail acquisition, grind movement, rail exits and grind ollies.
 - Added a shared test-area definition with a straight rail and six-triangle ramp for collision and rendering.
