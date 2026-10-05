@@ -31,11 +31,11 @@ try:
  command+=['res://controller_lab.tscn','--']+(['--lab-autotest'] if a.autotest else [])
  print('Controller lab: move both sticks and triggers, press buttons, disconnect/reconnect, then press Esc.',flush=True)
  run('controller-lab',command,env)
- if a.autotest:assert 'CONTROLLER_LAB_AUTOTEST passed' in (log/'controller-lab.txt').read_text(),'Controller lab did not finish'
+ if a.autotest:assert 'CONTROLLER_LAB_AUTOTEST passed' in (log/'controller-lab.txt').read_text(encoding='utf-8',errors='replace'),'Controller lab did not finish'
  trace=log/'controller.jsonl'
  assert trace.is_file(),'Controller lab did not save its trace'
  report['samples']=convert(trace,native,log/'skate3-guest-packets.jsonl')
- records=[json.loads(s) for s in trace.read_text().splitlines()];connected=[s for s in records if s['device']>=0]
+ records=[json.loads(s) for s in trace.read_text(encoding='utf-8').splitlines()];connected=[s for s in records if s['device']>=0]
  report['controller_observation']='CONNECTED_SAMPLES_CAPTURED' if connected else 'NO_CONTROLLER_DETECTED'
  report['disconnect_events']=sum(bool(s['disconnected']) for s in records)
  report['axis_ranges']={name+'_'+axis:[min(s[name][i] for s in records),max(s[name][i] for s in records)] for name in ['left_stick_raw','right_stick_raw'] for i,axis in enumerate(['x','y'])}
