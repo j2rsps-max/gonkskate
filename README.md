@@ -1,4 +1,4 @@
-# GonkSkate v0.6.3
+# GonkSkate v0.6.4
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -50,3 +50,7 @@ checks guest packets encoded against the actual pinned ReXGlue SDK. Optional
 local game-file checks inspect metadata and known TU3 hashes. A separate upstream
 reference launcher is available; authentic Skate gameplay inside GonkSkate is pending.
 Read [test notes](TEST_NOTES.md) and [verified input boundary](docs/SKATE3_INPUT_PROGRESS.md).
+
+If Skate3Recomp is already running on Windows, `RUN_SKATE3_REFERENCE.cmd --inspect-only`
+automatically locates it and gathers metadata without starting another instance.
+The latest-state controller mailbox is SDK-tested; guest driver hookup remains pending.

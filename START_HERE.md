@@ -1,4 +1,4 @@
-# GonkSkate v0.6.3 — controller lab and Skate 3 input preparation
+# GonkSkate v0.6.4 — controller lab and Skate 3 input preparation
 
 Start with [TEST_NOTES.md](TEST_NOTES.md) for this update’s exact Windows test pass.
 `RUN_SKATE3_CHECK.cmd` opens the controller lab and reports optional local game metadata.
@@ -35,3 +35,7 @@ History packages and the v0.5.1 PowerShell harness fixes remain intact.
 
 Controller support is required for both gameplay backends. See
 [controller support](docs/CONTROLLER_SUPPORT.md) for mappings, tests and current limits.
+
+For a working Skate3Recomp installation, use the small reference-check package or
+run `RUN_SKATE3_REFERENCE.cmd --inspect-only` here while Skate is open.
+Return the generated `logs\GonkSkate-skate3-reference-results-*.zip`.

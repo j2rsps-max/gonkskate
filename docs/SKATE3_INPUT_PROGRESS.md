@@ -80,3 +80,29 @@ An extracted dump and the installed recompilation may differ in update staging.
 
 Map mixing, imported characters and Skate 1/2 format compatibility remain later
 milestones. See [test notes](../TEST_NOTES.md) for exact Windows commands.
+
+## v0.6.4: latest-state bridge and installed reference inspection
+
+The native bridge now has a C-compatible input handle with create/destroy,
+submit and poll operations. It uses actual SDK connection/error values and keeps
+one coherent controller snapshot under a mutex. Repeated guest polls return the
+same input; they never advance a queue or simulation clock. Packet numbers change
+only when the encoded gamepad state or connection changes, independently of the
+host capture frame number. Disconnect clears controls. Inactive guest queries
+suppress controls without erasing the raw state used by an active/UI query.
+Invalid submissions preserve the last valid snapshot. Stop all users before
+destroying the handle. InputSystem/Xam driver registration, capabilities and
+rumble forwarding are still pending; this API is not attached to the owner's
+running game.
+
+Native tests validate 1,000 stable polls, invalid-submission preservation,
+disconnect/reconnect, unsupported user slots, UI suppression and simultaneous
+submit/poll snapshots on Linux and Windows under Wine.
+
+The reference checker can find one running `skate3.exe` on Windows via process
+metadata. `--inspect-only` hashes that executable and probes known local game
+locations, leaving the current game open. Missing known locations do not imply
+a broken installation; custom paths may need `--exe` and a separate game-root
+readiness check. Inspection contains no gameplay console trace; a launched
+reference run records console output as before. Windows automatic discovery
+still needs the owner's machine test.

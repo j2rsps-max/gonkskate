@@ -11,6 +11,16 @@ typedef struct GonkSkate3PadFrame {
 // Encodes the 16-byte, big-endian ReXGlue guest X_INPUT_STATE.
 // Invalid/non-finite input leaves output untouched. Connection is separate.
 uint8_t gonk_skate3_encode_pad(const GonkSkate3PadFrame* frame,uint8_t out_state[16]);
+// Latest-state mailbox for a future ReXGlue driver. Polls never consume input.
+// The host owns submission cadence; this API does not advance simulation time.
+typedef struct GonkSkate3Input GonkSkate3Input;
+GonkSkate3Input* gonk_skate3_input_create(void);
+// Destroy only after every submitting/polling thread has stopped.
+void gonk_skate3_input_destroy(GonkSkate3Input* input);
+uint8_t gonk_skate3_input_submit(GonkSkate3Input* input,uint8_t connected,const GonkSkate3PadFrame* frame);
+// Returns SDK X_RESULT. Only slot 0 is hosted; a null output is a status query.
+// active=0 suppresses gamepad fields for guest UI gating, preserving raw state.
+uint32_t gonk_skate3_input_poll(GonkSkate3Input* input,uint32_t user_index,uint8_t active,uint8_t out_state[16]);
 #ifdef __cplusplus
 }
 #endif

@@ -14,6 +14,6 @@ if windows:
  mingw=Path('/workspace/tooling/mingw/usr');gcc=mingw/'lib/gcc/x86_64-w64-mingw32/14-posix'
  flags+=['--target=x86_64-w64-windows-gnu','--sysroot='+str(mingw/'x86_64-w64-mingw32'),'-I'+str(gcc/'include/c++'),'-I'+str(gcc/'include/c++/x86_64-w64-mingw32'),'-L'+str(gcc),'-B'+str(mingw/'bin'),'-static','-pthread']
 exe=build/('gonkskate-skate3-input-test.exe' if windows else 'gonkskate-skate3-input-test')
-subprocess.run([cxx,*flags,str(root/'native/skate3_adapter/src/skate3_pad.cpp'),str(root/'native/skate3_adapter/tests/pad_test.cpp'),'-o',str(exe)],env=env,check=True)
-manifest={**pins,'target':a.target,'executable_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'sdk_input_header_sha256':hashlib.sha256((sdk/'include/rex/input/input.h').read_bytes()).hexdigest(),'scope':'SDK controller packet encoding only; no retail game code executed'}
+subprocess.run([cxx,*flags,str(root/'native/skate3_adapter/src/skate3_pad.cpp'),str(root/'native/skate3_adapter/src/skate3_input.cpp'),str(root/'native/skate3_adapter/tests/pad_test.cpp'),'-o',str(exe)],env=env,check=True)
+manifest={**pins,'target':a.target,'executable_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'sdk_input_header_sha256':hashlib.sha256((sdk/'include/rex/input/input.h').read_bytes()).hexdigest(),'scope':'SDK controller packet encoding and latest-state mailbox; no retail game code executed'}
 (build/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n');print(exe)

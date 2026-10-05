@@ -1,4 +1,9 @@
-# v0.6.3 Windows test pass
+# Windows test pass
+
+If Skate3Recomp is already working, first run `RUN_SKATE3_REFERENCE.cmd --inspect-only`
+while its window is open. The v0.6.4 standalone reference-check ZIP needs only
+Python 3 and records executable/game metadata. The full playable tests below
+remain available in the v0.6.3 Windows preview package.
 
 Extract the full package into a writable folder. Python 3 is required; Godot and
 both native test executables are included. Old releases remain unchanged.

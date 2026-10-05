@@ -1,6 +1,13 @@
 
 # Changelog
 
+## v0.6.4
+- Added automatic discovery of the running Windows Skate3Recomp and an inspection-only reference report.
+- Reported executable identity and local game metadata without launching another game instance or bundling assets.
+- Added a thread-safe latest-controller-state API with stable polls, packet change tracking, disconnect clearing and UI suppression.
+- Verified the new state API against real SDK types on Linux and Windows; guest runtime hookup remains pending.
+- Added a small standalone reference-check download for the owner’s working PC installation.
+
 ## v0.6.3
 - Verified current Skate3 and pinned ReXGlue guest input path at XamInputGetState.
 - Compiled a dual-stick/trigger controller packet encoder against real SDK types with Linux/Windows equality checks.

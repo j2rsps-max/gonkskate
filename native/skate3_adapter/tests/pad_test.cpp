@@ -8,6 +8,10 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <atomic>
+#include <rex/system/xtypes.h>
+using namespace rex;
 static void check(bool x,const char* message){if(!x){std::cerr<<message<<'\n';std::exit(1);}}
 int main(int argc,char** argv){
  if(argc==2 && std::string(argv[1])=="--pipe"){
@@ -37,5 +41,32 @@ int main(int argc,char** argv){
  check(s.gamepad.left_trigger==0 && s.gamepad.right_trigger==255,"trigger clamping");
  f.left_x=INFINITY;auto before=out;check(!gonk_skate3_encode_pad(&f,out.data()) && out==before,"invalid input must leave output untouched");
  check(!gonk_skate3_encode_pad(nullptr,out.data()),"null rejection");
- std::cout<<"SKATE3_INPUT_TEST passed: real SDK layout, byte order, 15 buttons, dual sticks, triggers, bounds\n";
+ auto input=gonk_skate3_input_create();check(input,"input allocation");
+ check(gonk_skate3_input_poll(input,0,1,nullptr)==X_ERROR_DEVICE_NOT_CONNECTED,"initial connection status");
+ f={999,1,1,-1,-1,1,0.5f,1};check(gonk_skate3_input_submit(input,1,&f),"submit connected snapshot");
+ check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS,"connected poll");
+ auto held=out;std::memcpy(&s,out.data(),16);check(uint32_t(s.packet_number)==1,"mailbox packet sequence");
+ for(int i=0;i<1000;++i){check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS && out==held,"poll must not consume input");}
+ f.packet_number=1000;check(gonk_skate3_input_submit(input,1,&f),"unchanged submission");
+ check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS && out==held,"capture frame is not a packet change");
+ check(gonk_skate3_input_poll(input,0,0,out.data())==X_ERROR_SUCCESS,"inactive query");
+ for(unsigned i=4;i<16;++i) check(out[i]==0,"inactive guest buttons/axes");
+ check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS && out==held,"UI query retains raw state");
+ f.left_x=NAN;check(!gonk_skate3_input_submit(input,1,&f),"reject invalid submission");
+ check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS && out==held,"invalid submit must preserve snapshot");
+ check(gonk_skate3_input_poll(input,1,1,nullptr)==X_ERROR_DEVICE_NOT_CONNECTED,"unsupported user slot");
+ check(gonk_skate3_input_submit(input,0,nullptr),"disconnect");
+ check(gonk_skate3_input_poll(input,0,1,nullptr)==X_ERROR_DEVICE_NOT_CONNECTED,"disconnected query");
+ f={0,0,0,0,0,0,0,0};check(gonk_skate3_input_submit(input,1,&f),"reconnect neutral");
+ check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS,"reconnect poll");
+ for(unsigned i=4;i<16;++i) check(out[i]==0,"no stale controls after reconnect");
+ std::atomic<bool> done=false;
+ std::thread writer([&]{for(int i=0;i<5000;++i){GonkSkate3PadFrame a={0,uint32_t(i%2 ? 1:2),i%2 ? 1.0f:-1.0f,0,0,0,0,0};check(gonk_skate3_input_submit(input,1,&a),"concurrent submit");}done=true;});
+ do{
+  check(gonk_skate3_input_poll(input,0,1,out.data())==X_ERROR_SUCCESS,"concurrent poll");std::memcpy(&s,out.data(),16);
+  auto button=uint16_t(s.gamepad.buttons);auto x=int16_t(s.gamepad.thumb_lx);
+  check((button==0 && x==0) || (button==0x1000 && x==32767) || (button==0x2000 && x==-32768),"snapshot must not tear across threads");
+ }while(!done);
+ writer.join();gonk_skate3_input_destroy(input);
+ std::cout<<"SKATE3_INPUT_TEST passed: real SDK layout, byte order, 15 buttons, dual sticks, triggers, bounds, stable polls, disconnect, UI gating, concurrent snapshots\n";
 }
