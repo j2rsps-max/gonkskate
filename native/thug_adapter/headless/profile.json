@@ -1,0 +1,11 @@
+{
+  "description": "Synthetic flat-floor runtime settings; physics values come from active physics.q declarations.",
+  "runtime_globals": {
+    "debug_skater_pos": 0,
+    "debug_skater_vel": 0,
+    "output_tracking_lines": 0,
+    "skater_trails": 0,
+    "TurboOllie": 0,
+    "rail_highlights": 0
+  }
+}

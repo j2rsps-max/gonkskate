@@ -1,4 +1,4 @@
-# GonkSkate v0.6.0-dev
+# GonkSkate v0.6.0
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -16,19 +16,13 @@ Long-term combinations include:
 - Skate 3 map + THUG physics
 - Skate 3 map + Skate 3 physics
 
-## v0.5 focus
+## First playable preview
 
-This is the first **Windows integration-readiness test package**.
-
-Start with:
-
-`START_HERE.md`
-
-or simply run:
-
-`RUN_FIRST_TEST.cmd`
-
-v0.5 is cumulative and includes exact v0.1–v0.4 archives under `history/`.
+Run `RUN_PLAYABLE.cmd` from the full Windows preview package. It includes a
+synthetic floor, placeholder skater, follow camera, keyboard/controller input
+and authentic THUG ground/air movement. Hold Space and release to ollie.
+Read [START_HERE.md](START_HERE.md) and [first playable test](docs/FIRST_PLAYABLE_TEST.md).
+The historical archives under `history/` remain unchanged.
 
 ## Legal/content boundary
 
@@ -37,6 +31,8 @@ tools should operate on files supplied locally by the user from their own copies
 
 ## Current native progress
 
-See [v0.6 native progress](docs/V06_NATIVE_PROGRESS.md). The Rust FFI crate now
-links the native THUG parameter evaluator. Skating simulation is still a
-prototype until the real THUG core is integrated.
+The standalone executable compiles real THUG core/state/rotation/math code at
+60 Hz. The presentation client sends input and reads authoritative native state.
+The Rust FFI links the tested native stat evaluator; integrating the full native
+runtime into the Rust backend is next. Rust's selectable THUG/Skate3 simulation
+backends are still prototypes. Rails and imported collision remain future work.

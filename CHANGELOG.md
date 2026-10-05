@@ -1,6 +1,17 @@
 
 # Changelog
 
+## v0.6.0
+- Compiled and executed the real THUG core Update with original state, rotation, math and button code.
+- Added fixed 60 Hz time, versioned CFeeler collision callback and synthetic flat-floor world.
+- Preserved crouch timing and release-event/public Jump path; restored original previous-position lifecycle.
+- Added deterministic ground/air, steering, braking, replay, long-run and fail-fast dependency checks.
+- Added a follow-camera Godot presentation client, keyboard/controller input and recorded native session traces.
+- Built a self-contained Windows x64 native executable; native behavior checks pass under Wine.
+- Added one-command Windows preview launcher and automatic diagnostic ZIPs.
+- Added reusable signed-repository local compiler installation and cumulative packaging.
+- Recorded independent character appearance/import roadmap across Tony Hawk and Skate games.
+
 ## v0.6.0-dev
 - Added native scripted-stat evaluation and Rust C ABI integration.
 - Captured 18 active core stat definitions with provenance; retained unresolved references.

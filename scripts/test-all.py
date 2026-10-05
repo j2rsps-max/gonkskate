@@ -12,6 +12,7 @@ STAMP = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S-%f'
 LOG = ROOT / 'logs' / STAMP
 LOG.mkdir(parents=True)
 results = []
+authentic_status = "UNRUN"
 
 
 def run(name, argv):
@@ -62,6 +63,14 @@ try:
         run('upstream-stat-differential', [sys.executable, 'tools/test_thug_stat_semantics.py', upstream])
     else:
         results.append({'stage':'upstream-stat-differential','status':'unrun: standalone helper currently uses GNU/Clang command syntax'})
+    executable = ROOT / ('build/thug-headless-windows/gonkskate-thug-test.exe' if sys.platform == 'win32' else 'build/thug-headless/gonkskate-thug-test')
+    if sys.platform != 'win32':
+        run('real-core-build', [sys.executable, 'tools/build_thug_headless.py'])
+    if executable.exists():
+        run('real-core-behavior', [sys.executable, 'tools/test_thug_headless.py', executable, '--output', LOG / 'real-core'])
+        authentic_status = 'PASS: real-core synthetic flat-floor profile'
+    else:
+        results.append({'stage':'real-core-behavior','status':'UNRUN: use Windows preview package or build on Linux'})
     comparison = json.loads((LOG / 'thug-param-compare.json').read_text())
     results.append({'stage':'active-parameter-coverage', 'status':'WARN' if comparison['mismatch_count'] else 'PASS',
                     'mismatches':comparison['mismatches']})
@@ -75,10 +84,11 @@ except Exception as error:
     print(error, file=sys.stderr)
 finally:
     (LOG / 'summary.json').write_text(json.dumps({'development_checks':'FAIL' if failed else 'PASS',
-        'authentic_ground_air':'NOT IMPLEMENTED', 'results':results}, indent=2)+'\n')
+        'authentic_ground_air':authentic_status, 'results':results}, indent=2)+'\n')
     version = (ROOT / 'VERSION').read_text().strip()
     bundle = ROOT / 'logs' / f'GonkSkate-{version}-results-{STAMP}.zip'
     with zipfile.ZipFile(bundle, 'w', zipfile.ZIP_DEFLATED) as archive:
-        for p in LOG.iterdir(): archive.write(p, p.name)
+        for p in LOG.rglob("*"):
+            if p.is_file(): archive.write(p, p.relative_to(LOG))
     print('Result bundle:', bundle)
 sys.exit(1 if failed else 0)

@@ -3,3 +3,6 @@
 /logs/
 /external/
 __pycache__/
+
+/playable/.godot/
+/bin/

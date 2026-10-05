@@ -139,7 +139,7 @@ finally {
     Copy-Item (Join-Path $Root "VERSION") $LogDir -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $Root "native\thug_adapter\config\thug_core_physics_defaults.json") $LogDir -ErrorAction SilentlyContinue
 
-    $resultZip = Join-Path $Root ("logs\GonkSkate-v0.6.0-dev-results-" + $stamp + ".zip")
+    $resultZip = Join-Path $Root ("logs\GonkSkate-v" + (Get-Content (Join-Path $Root "VERSION") -Raw).Trim() + "-results-" + $stamp + ".zip")
     Compress-Archive -Path (Join-Path $LogDir "*") -DestinationPath $resultZip -Force
 
     Write-Host ""

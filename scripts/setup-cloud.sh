@@ -23,4 +23,6 @@ if [ ! -e external/kisak-thug ]; then
     git -C external/kisak-thug checkout --detach 98b4e24921446ccd4b157453e25697f9574f0053
 fi
 # Do not reset or update a user's existing reference checkout.
+python3 scripts/setup-native-tools.py
 python3 scripts/test-all.py
+python3 scripts/run-playable.py --autotest

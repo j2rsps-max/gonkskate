@@ -1,44 +1,30 @@
-# GonkSkate v0.6.0-dev
+# GonkSkate v0.6.0 — first THUG playable preview
 
-Native parameter integration is implemented and tested. Real THUG ground/air
-simulation remains the next milestone. See `docs/V06_NATIVE_PROGRESS.md` for
-verified results, gaps, and exact test commands. History packages remain intact.
+Real THUG ground/air code now runs outside the normal rendered THUG game loop.
+The preview is a synthetic flat floor with a placeholder skater and follow camera.
 
-# GonkSkate v0.5.1 — Windows Test Hotfix
+Extract the full Windows playable package into a writable folder and run:
 
-This is the cumulative v0.5 package with two harness fixes discovered by the
-first two real Windows runs.
+```powershell
+.\RUN_PLAYABLE.cmd
+```
 
-## Fixed in v0.5.1
+W pushes, A/D steer, S brakes. Hold Space to crouch; release it to ollie.
+Escape quits. Keyboard and basic controller mappings are supported.
+Python 3 is required; the package includes Godot and the native x64 executable.
 
-1. Windows PowerShell 5.1 no longer treats normal native-program stderr as a
-   test failure. Cargo is expected to write messages such as
-   `Updating crates.io index` to stderr.
-2. The prerequisite version probe no longer collides with PowerShell's automatic
-   `$Args` variable, so `git --version`, `cargo --version`, etc. now receive the
-   intended arguments.
-3. A harness self-test intentionally writes one line to stdout and one line to
-   stderr, exits with code 0, and verifies that both were captured without
-   failing.
-4. Git, Cargo, CMake, the native smoke executable and Python comparison are all
-   judged by their actual exit codes.
+Return `logs\GonkSkate-playable-results-*.zip` after testing. A failed launch also
+produces that bundle. For a hands-free integration check:
 
-## What to do
+```powershell
+.\RUN_PLAYABLE.cmd --autotest
+```
 
-You do not need to reinstall Rust, Git, CMake, Python, or Visual Studio based on
-the previous v0.5 result.
+Read [first playable test](docs/FIRST_PLAYABLE_TEST.md) for verified results,
+build commands and profile limits. Windows native checks pass under Wine;
+actual Windows hardware testing remains outstanding.
 
-Extract this package to a normal writable folder and run:
-
-`RUN_FIRST_TEST.cmd`
-
-When it finishes, send back:
-
-`logs\GonkSkate-v0.5.1-results-*.zip`
-
-Even a failed run is useful; the harness will package the exact failure.
-
-## Package history
-
-This ZIP still contains all cumulative project files plus exact historical
-archives for v0.1, v0.2, v0.3, v0.4, and the original v0.5 full test package.
+The Rust host remains cumulative and its selectable physics backends are still
+prototypes. This preview uses real native THUG physics through a process bridge.
+History packages and the v0.5.1 PowerShell harness fixes remain intact.
+`RUN_FIRST_TEST.cmd` runs the older readiness harness.

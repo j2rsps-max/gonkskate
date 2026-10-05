@@ -1,8 +1,11 @@
-# v0.6.0-dev: native parameter bridge and validated cloud workflow
+# Historical v0.6.0-dev: native parameter bridge and validated cloud workflow
 
-This is cumulative development based on the supplied v0.5.1 ZIP. The exact
-historical archives remain unchanged. This is **not** the authentic ground/air
-release: `CSkaterCorePhysicsComponent::Update()` is not yet running in GonkSkate.
+These notes describe the earlier parameter-only stage. Current real-core/playable
+progress is documented in [FIRST_PLAYABLE_TEST.md](FIRST_PLAYABLE_TEST.md).
+
+This was cumulative development based on the supplied v0.5.1 ZIP. The exact
+historical archives remain unchanged. That stage was **not** the authentic ground/air
+release: `CSkaterCorePhysicsComponent::Update()` was not yet running in GonkSkate.
 Both selectable Rust physics backends remain explicitly labeled prototypes.
 
 ## Implemented

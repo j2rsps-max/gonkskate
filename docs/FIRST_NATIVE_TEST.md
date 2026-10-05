@@ -1,5 +1,8 @@
 # First native test specification
 
+Ground/air stages are now implemented in the v0.6.0 flat-floor profile. See
+[FIRST_PLAYABLE_TEST.md](FIRST_PLAYABLE_TEST.md) for commands and validation.
+
 ## Purpose
 
 Prove that **real THUG core physics** can execute without the normal THUG renderer or level loader.
@@ -14,7 +17,9 @@ Synthetic:
 - no moving objects
 - no triggers
 
-The Rust crate `gonkskate-thug-ffi` already contains the callback implementation for this world.
+The authoritative first runtime uses the versioned C++ callback in
+`native/thug_adapter/src/thug_flat_world.cpp`. Rust retains its earlier illustrative
+callback for future host integration.
 
 ## Test sequence
 
@@ -29,7 +34,7 @@ Expected:
 - collision queries hit the plane
 
 ### Stage B — movement
-Hold forward for 120 frames.
+Hold THUG square/push input (mapped to W); forward alone does not initiate a push.
 
 Record:
 - position
