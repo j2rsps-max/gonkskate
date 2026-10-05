@@ -1,5 +1,9 @@
 # GonkSkate roadmap
 
+Main application decision: Skate3Recomp with original Skate gameplay and
+selectable THUG gameplay. See [integration direction](INTEGRATION_DIRECTION.md).
+Keep the standalone courtyard as a regression harness.
+
 ## Phase 0 — host architecture
 - [x] Rust workspace
 - [x] shared map manifest
@@ -34,6 +38,7 @@
 - [ ] callback-backed rail lookup
 - [x] runtime world selection, validated binary transport and indexed collision
 - [x] triangulated OBJ and Skate render-recording importers with original demo/format fixtures
+- [x] unified importer command with explicit format/unit boundaries
 - [ ] validate a retail Skate render capture on owner hardware
 - [ ] import one THUG level's collision
 - [ ] run real THUG physics on imported THUG collision
@@ -59,6 +64,19 @@
 - [ ] normalize one THUG collision area
 - [ ] Skate 3 physics on THUG geometry
 - [ ] map + physics selection UI
+
+## Additional map format research
+
+Tony Hawk and Skate formats remain first. Each supported source needs a converter
+and verified collision/placement/skating metadata; file extensions alone are not
+enough. Existing OBJ exports can use the neutral importer today.
+
+- [ ] THUG Pro custom map/package compatibility and THUG2-specific differences
+- [ ] other Tony Hawk game/platform variants
+- [ ] Skate 1/2 and general Skate 3 mod/package formats
+- [ ] Session source exports and packaged mod formats
+- [ ] Skater XL source exports and packaged mod formats
+- [ ] richer neutral mesh/material formats, including glTF and FBX
 
 ## Playable preview
 - [x] standalone real-core ground/air test and Windows x64 binary

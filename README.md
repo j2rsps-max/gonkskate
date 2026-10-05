@@ -9,6 +9,11 @@ provides the prebuilt Windows ZIP through GitHub. See the
 
 ## Current project rule
 
+The main playable application will be Skate3Recomp, with its original Skate
+gameplay and selectable authentic THUG skating. Godot remains the native-adapter
+test harness. See [integration direction and importer priorities](docs/INTEGRATION_DIRECTION.md).
+Live guest gameplay/world hooks are still pending.
+
 - maps are data;
 - gameplay/physics is a selectable backend;
 - only one skating backend is authoritative at a time.
@@ -47,8 +52,8 @@ tools should operate on files supplied locally by the user from their own copies
 
 The standalone executable compiles real THUG core/state/rotation/math code at
 60 Hz. The presentation client sends input and reads authoritative native state.
-The Rust FFI links the tested native stat evaluator; integrating the full native
-runtime into the Rust backend is next. Rust's selectable THUG/Skate3 simulation
+The Rust FFI links the tested native stat evaluator. The next priority is live
+integration with the Skate3Recomp frontend. Rust's selectable THUG/Skate3 simulation
 backends are still prototypes. Original rail acquisition and rail physics now run against a synthetic rail.
 Shared triangle geometry drives native collision and rendering. Balance, trick
 animations, scoring and bails remain future work. Runtime imported triangles are

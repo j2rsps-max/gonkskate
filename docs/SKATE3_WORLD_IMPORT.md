@@ -85,6 +85,18 @@ Release packages contain only our original demo geometry and code/tooling.
 
 ## Other geometry and reproduction
 
+The current development branch adds a unified import command (not included in
+the original v0.6.6 ZIP). For example:
+
+```powershell
+py -3 tools\import_map.py --list-formats
+py -3 tools\import_map.py my-area.obj --units meter --spawn-inches 0 0 0 --output local-worlds\my-area.json
+py -3 tools\import_map.py snapshot_SECONDS.scene.jsonl --radius-meters 60 --output local-worlds\skate-area.json
+```
+
+It dispatches to the tested converters and preserves existing world metadata.
+Packed game/mod files are unsupported until a source-specific decoder exists.
+
 Triangulated OBJ files use explicit units and optional Z-up/winding conversion:
 
 ```powershell

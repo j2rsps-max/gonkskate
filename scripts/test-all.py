@@ -42,6 +42,7 @@ try:
     run('abi-smoke', [smoke])
     run('q-parser-tests', [sys.executable, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_thug_q.py', '-v'])
     run('world-import-formats', [sys.executable, 'tools/test_world_import.py'])
+    run('map-import-dispatch', [sys.executable, 'tools/test_map_import.py'])
     upstream = ROOT / 'external/kisak-thug'
     if not upstream.exists():
         run('thug-clone', ['git', 'clone', '--depth', '1', 'https://github.com/SwagSoftware/kisak-thug.git', upstream])

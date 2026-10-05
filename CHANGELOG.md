@@ -1,6 +1,12 @@
 
 # Changelog
 
+## Unreleased
+- Recorded Skate3Recomp as the main frontend, with original Skate gameplay and selectable authentic THUG skating.
+- Added one validated map-import command for existing normalized worlds, triangulated OBJ and Skate render captures.
+- Kept unit/crop/spawn boundaries explicit and rejected unsupported packed mod formats without claiming compatibility.
+- Recorded Tony Hawk/Skate format priorities and later THUG Pro, Session and Skater XL research candidates.
+
 ## v0.6.6
 - Added validated runtime world loading with shared float32 collision/render geometry, spawn/facing and original multi-rail ingestion.
 - Added an indexed triangle bridge with 15,000 seeded differential queries and stable nearest/farthest/flag/tie behavior.

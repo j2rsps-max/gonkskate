@@ -1,5 +1,9 @@
 # GonkSkate v0.6.6 — runtime worlds and Skate scenery capture
 
+Development direction: use Skate3Recomp as the main app, preserving original
+Skate gameplay and adding selectable authentic THUG skating. The Godot preview
+is the regression harness. Read [integration direction](docs/INTEGRATION_DIRECTION.md).
+
 Start with [Skate world import](docs/SKATE3_WORLD_IMPORT.md) for the new combination test.
 Try `RUN_PLAYABLE.cmd --world worlds\courtyard.json` immediately, then capture an
 area using `RUN_SKATE3_CAPTURE.cmd --exe "YOUR_INSTALLED_SKATE3_EXE"`.
