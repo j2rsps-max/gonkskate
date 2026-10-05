@@ -1,5 +1,9 @@
 # Windows test pass
 
+The owner's v0.6.6 courtyard/controller test passed on Windows. Its 2,234-frame
+live trace replays exactly on Linux. See [verified results](docs/WINDOWS_VALIDATION.md).
+Retail Skate capture and integration remain unvalidated.
+
 v0.6.6 priority: follow [Skate world import](docs/SKATE3_WORLD_IMPORT.md).
 First run `RUN_PLAYABLE.cmd --world worlds\courtyard.json`, then the local Skate
 capture command. Return capture-results and playable-results ZIPs only.

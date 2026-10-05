@@ -3,9 +3,9 @@
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
 
-To continue on the owner's Windows PC, use the [local setup and handoff](LOCAL_HANDOFF.md).
 The [downloads branch](https://github.com/j2rsps-max/gonkskate/tree/downloads)
-hosts the verified prebuilt Windows ZIP.
+provides the prebuilt Windows ZIP through GitHub. See the
+[first owner Windows validation](docs/WINDOWS_VALIDATION.md) for confirmed results.
 
 ## Current project rule
 

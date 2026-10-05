@@ -65,7 +65,8 @@
 - [x] synthetic floor, placeholder skater, follow camera and basic controller/keyboard input
 - [x] deterministic native session traces and replay checks
 - [x] shared rail/ramp geometry, grind/reset controls and slope orientation
-- [ ] validate keyboard/controller/rendering on the owner's Windows machine
+- [x] owner Windows courtyard rendering/controller/ground-air/basic-grind validation
+- [ ] owner keyboard and physical disconnect/reconnect validation
 - [ ] integrate real runtime handles into the Rust backend
 
 ## Independent skater appearance and character imports
