@@ -25,6 +25,8 @@ var area_test := false
 var controller_test := false
 var controller_ticks := 0
 var trace_path := ""
+var camera_yaw := 0.0
+var camera_pitch := 0.0
 
 func mesh(parent: Node3D, shape: Mesh, color: Color, at: Vector3) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -133,7 +135,7 @@ func _ready() -> void:
 	status.position = Vector2(38,110)
 	status.add_theme_font_size_override("font_size",15)
 	status.text = "W / ↑ push     A D / ← → steer     S / ↓ brake\nHold Space to crouch; release to ollie. E holds grind. R resets.
-Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets."
+Ramp is beside the rail; rail is straight ahead. Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Right stick looks."
 	layer.add_child(status)
 	var exe := OS.get_environment("GONK_THUG_EXE")
 	if exe.is_empty():
@@ -186,6 +188,12 @@ func _physics_process(delta: float) -> void:
 			event.button_index = int(controller.config["thug_buttons"][action])
 			event.pressed = (action=="push" and frame>=30) or (action=="crouch" and frame>=150 and frame<165) or (action=="grind" and frame>=165) or (action=="pause" and controller_ticks in [70,75])
 			Input.parse_input_event(event)
+		for axis in [JOY_AXIS_RIGHT_X,JOY_AXIS_RIGHT_Y]:
+			var motion := InputEventJoypadMotion.new()
+			motion.device = 7
+			motion.axis = axis
+			motion.axis_value = 0.7 if axis==JOY_AXIS_RIGHT_X and frame>=40 and frame<100 else 0.5 if axis==JOY_AXIS_RIGHT_Y and frame>=100 and frame<120 else 0.0
+			Input.parse_input_event(motion)
 		Input.flush_buffered_events()
 		controller_ticks += 1
 	var snapshot: Dictionary = controller.read([7] if controller_test else null)
@@ -240,7 +248,10 @@ func _physics_process(delta: float) -> void:
 		rail_frames += 1
 	body.position.y = -0.3 if crouch else 0.0
 	floor_mesh.position = Vector3(roundf(skater.position.x/100)*100,0,roundf(skater.position.z/100)*100)
-	camera.position = camera.position.lerp(skater.position-forward*6+Vector3.UP*3.4,1-exp(-6*delta))
+	camera_yaw += -rs.x*delta*1.8
+	camera_pitch = clampf(camera_pitch-rs.y*delta*1.2,-0.4,0.7)
+	var camera_back := (-forward).rotated(Vector3.UP,camera_yaw)
+	camera.position = camera.position.lerp(skater.position+camera_back*6+Vector3.UP*(3.4+camera_pitch*3),1-exp(-6*delta))
 	camera.look_at(skater.position+Vector3.UP*0.95)
 	var velocity := Vector3(float(fields[9]),float(fields[10]),float(fields[11]))
 	hud.text = "GONKSKATE  /  THUG test area\n%s   %.1f km/h   frame %d\n" % ["RAIL" if int(fields[15])==4 else ("AIR" if int(fields[15])==1 else "GROUND"),velocity.length()*INCH_TO_METER*3.6,frame]
@@ -251,8 +262,8 @@ func _physics_process(delta: float) -> void:
 		if landings!=1 or apex<60 or apex>66 or (area_test and rail_frames<40):
 			stop_with_error("Scene integration failed: apex=%f landings=%d" % [apex,landings])
 		else:
-			if controller_test and controller_ticks!=365:
-				stop_with_error("Controller pause/resume did not suspend five native ticks")
+			if controller_test and (controller_ticks!=365 or absf(camera_yaw)<0.3 or absf(camera_pitch)<0.1):
+				stop_with_error("Controller pause/resume or right-stick camera check failed")
 				return
 			print("PLAYABLE_AUTOTEST passed: 360 native ticks, one ollie and landing, rail ticks=",rail_frames,", apex=",apex)
 			get_tree().quit()

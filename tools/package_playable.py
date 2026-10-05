@@ -18,12 +18,16 @@ assert hashlib.sha256((root/'worlds/test_area.json').read_bytes()).hexdigest()==
 files=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split('\0')
 version=(root/'VERSION').read_text().strip();prefix='GonkSkate-v'+version+'/'
 if a.output is None:a.output=root.parent/f'GonkSkate-v{version}-Windows-Playable-Full-Package.zip'
+skate_exe=root/'build/skate3-input-windows/gonkskate-skate3-input-test.exe'
+skate_manifest=json.loads((skate_exe.parent/'manifest.json').read_text())
+assert hashlib.sha256(skate_exe.read_bytes()).hexdigest()==skate_manifest['executable_sha256']
 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
 with zipfile.ZipFile(a.output,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as bundle:
- bundle.writestr(prefix+'RELEASE_INFO.json',json.dumps({'version':version,'source_commit':source_commit,'upstream_commit':manifest['upstream_commit'],'godot_version':'4.4.1','windows_validation':'Wine native behavior suite and scene integration; actual Windows hardware unrun'},indent=2)+'\n')
+ bundle.writestr(prefix+'RELEASE_INFO.json',json.dumps({'version':version,'source_commit':source_commit,'upstream_commit':manifest['upstream_commit'],'skate3_commit':skate_manifest['skate3'],'skate3_sdk_commit':skate_manifest['sdk'],'godot_version':'4.4.1','windows_validation':'Wine native behavior suite and scene integration; actual Windows hardware unrun'},indent=2)+'\n')
  for name in files:
   if name:bundle.write(root/name,prefix+name)
  for name in ['build/thug-headless-windows/gonkskate-thug-test.exe','build/thug-headless-windows/manifest.json',
+              'build/skate3-input-windows/gonkskate-skate3-input-test.exe','build/skate3-input-windows/manifest.json',
               'logs/thug-headless/summary.json','logs/thug-headless-windows/summary.json','logs/playable-preview.png']:
   bundle.write(root/name,prefix+name)
  with zipfile.ZipFile(a.godot_archive) as engine:

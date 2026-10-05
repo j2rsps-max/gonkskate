@@ -1,6 +1,15 @@
 
 # Changelog
 
+## v0.6.3
+- Verified current Skate3 and pinned ReXGlue guest input path at XamInputGetState.
+- Compiled a dual-stick/trigger controller packet encoder against real SDK types with Linux/Windows equality checks.
+- Added a visible controller lab, captured guest packet previews, local XEX/TU3 metadata checks and automatic result ZIPs.
+- Added an optional launcher for a separately installed authentic upstream Skate3Recomp reference run.
+- Added right-stick camera look to the THUG playable preview and tested it alongside original movement/grind behavior.
+- Corrected controller tests to respect configured deadzones rather than assuming the default.
+- Added an exact Windows test/return checklist; authentic Skate physics integration remains pending.
+
 ## v0.6.2
 - Made controller support a required milestone for both THUG and Skate backends.
 - Added configurable THUG controller bindings, radial deadzones and independent dual-stick/trigger capture.

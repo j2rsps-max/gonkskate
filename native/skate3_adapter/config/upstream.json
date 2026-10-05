@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/Yoraikou/Skate3",
+  "commit": "f6e0ae87fdfecbadb5c1e36c55d66a744187a3cd",
+  "sdk_repository": "https://github.com/mchughalex/rexglue-skate3",
+  "sdk_commit": "7eb0faf7787f5e01333c228b8e3f03c32f7295ea",
+  "title_id": "454108E6",
+  "tu3_media_id": "5C087C2C",
+  "title_update_payloads": [
+    {"path": "default.xexp", "size": 1701888, "sha256": "eb9ef9109dfa6d940df2e156e7eaeda4603d2b2319ca6451f324b1c27f2b1f4c"},
+    {"path": "data/webkit/EAWebkit.xexp", "size": 4096, "sha256": "5d4a308d2a6c768fc27c8b62ccb6661171dc504f8c0011a3e116cf0074e09438"}
+  ]
+}

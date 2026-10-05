@@ -1,4 +1,4 @@
-# GonkSkate v0.6.2
+# GonkSkate v0.6.3
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -42,3 +42,11 @@ animations, scoring, bails and imported map collision remain future work.
 
 Controller support is required for both gameplay backends. See
 [controller support](docs/CONTROLLER_SUPPORT.md) for mappings, tests and current limits.
+
+## Skate 3 input preparation
+
+`RUN_SKATE3_CHECK.cmd` captures both sticks/triggers in a live controller lab and
+checks guest packets encoded against the actual pinned ReXGlue SDK. Optional
+local game-file checks inspect metadata and known TU3 hashes. A separate upstream
+reference launcher is available; authentic Skate gameplay inside GonkSkate is pending.
+Read [test notes](TEST_NOTES.md) and [verified input boundary](docs/SKATE3_INPUT_PROGRESS.md).

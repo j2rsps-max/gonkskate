@@ -37,7 +37,10 @@
 ## Phase 3 — Skate 3 boundary research
 - [x] confirm current native recomp foundation and renderer status
 - [x] confirm generated/recompiled game logic is hosted through ReXGlue
-- [ ] identify controller injection point
+- [x] identify guest controller ingestion path (ReXGlue InputSystem → XamInputGetState)
+- [x] validate full controller guest packet encoding against real SDK types
+- [x] local controller lab, game metadata probe and reference-run diagnostics
+- [ ] implement runtime input driver/transport with connection status and UI gating
 - [ ] identify guest player transform addresses/symbols
 - [ ] identify simulation tick / scheduler hook
 - [ ] identify collision-world coupling

@@ -26,3 +26,9 @@ fi
 python3 scripts/setup-native-tools.py
 python3 scripts/test-all.py
 python3 scripts/run-playable.py --controller-autotest
+
+# Controller bridge uses upstream SDK headers only; no retail files required.
+python3 scripts/setup-skate3-source.py
+python3 tools/build_skate3_input.py
+python3 tools/test_skate3_readiness.py
+python3 scripts/run-skate3-check.py --autotest

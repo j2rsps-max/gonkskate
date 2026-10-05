@@ -1,4 +1,8 @@
-# GonkSkate v0.6.2 — THUG rail and ramp test area
+# GonkSkate v0.6.3 — controller lab and Skate 3 input preparation
+
+Start with [TEST_NOTES.md](TEST_NOTES.md) for this update’s exact Windows test pass.
+`RUN_SKATE3_CHECK.cmd` opens the controller lab and reports optional local game metadata.
+Skate gameplay is not running inside GonkSkate yet.
 
 Real THUG ground/air code now runs outside the normal rendered THUG game loop.
 The test area has a synthetic floor, a grind rail, a ramp, a placeholder skater and follow camera.
@@ -10,7 +14,7 @@ Extract the full Windows playable package into a writable folder and run:
 ```
 
 W pushes, A/D steer, S brakes. Hold Space to crouch; release it to ollie.
-Hold E to grind; press R to reset. Controller Start pauses; Back resets. Escape quits. Keyboard and basic controller mappings are supported.
+Hold E to grind; press R to reset. Controller Start pauses; Back resets; right stick looks. Escape quits. Keyboard and basic controller mappings are supported.
 Python 3 is required; the package includes Godot and the native x64 executable.
 
 Return `logs\GonkSkate-playable-results-*.zip` after testing. A failed launch also

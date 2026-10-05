@@ -43,3 +43,10 @@ These checks do not replace real hardware testing.
 
 Return `logs\GonkSkate-playable-results-*.zip` after testing your controller.
 Include its model and whether it was connected over USB or wireless.
+
+## v0.6.3 additions
+
+Right stick now controls the THUG preview camera. `RUN_SKATE3_CHECK.cmd` opens a
+live controller lab and writes packet previews through the real SDK encoder. See
+[TEST_NOTES.md](../TEST_NOTES.md) for testing and the separately installed Skate
+reference launcher. Authentic Skate input transport/runtime integration is pending.
