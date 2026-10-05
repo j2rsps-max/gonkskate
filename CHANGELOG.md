@@ -1,7 +1,13 @@
 
 # Changelog
 
-## Unreleased
+## v0.7.0
+- Added GONKSKATE.cmd and a single hub for linked Skate installation, game launch, saved map library and results.
+- Added real THUG flat-spawn, standing-ollie, landing and identical-replay acceptance before captured/imported-area play.
+- Collected each hub action into one asset-free milestone results ZIP, including failed checks and child diagnostics.
+- Preserved failed imported maps for spawn adjustment and excluded local captures/geometry from exports.
+- Tested persistent library, error/timeout reporting, source-format capture workflow, Linux UI and Windows native acceptance under Wine.
+- Retail capture and new Windows hub UI still require owner validation; live THUG control of the Skate guest remains pending.
 - Recorded Skate3Recomp as the main frontend, with original Skate gameplay and selectable authentic THUG skating.
 - Added one validated map-import command for existing normalized worlds, triangulated OBJ and Skate render captures.
 - Kept unit/crop/spawn boundaries explicit and rejected unsupported packed mod formats without claiming compatibility.

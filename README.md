@@ -1,4 +1,4 @@
-# GonkSkate v0.6.6
+# GonkSkate v0.7.0
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -6,6 +6,11 @@ independently from map origin.
 The [downloads branch](https://github.com/j2rsps-max/gonkskate/tree/downloads)
 provides the prebuilt Windows ZIP through GitHub. See the
 [first owner Windows validation](docs/WINDOWS_VALIDATION.md) for confirmed results.
+
+**Open `GONKSKATE.cmd` from the full Windows package.** The hub saves your Skate
+installation, keeps a local map library, checks imported areas using real THUG,
+and collects each action into one results ZIP. Follow [START_HERE.md](START_HERE.md)
+for the capture milestone and [release notes](docs/V070_MILESTONE.md) for verified scope.
 
 ## Current project rule
 
@@ -27,9 +32,9 @@ Long-term combinations include:
 
 ## First cross-world test
 
-The new runtime loads worlds without rebuilding. Run `RUN_PLAYABLE.cmd --world worlds\courtyard.json`
-for an original OBJ demo. `RUN_SKATE3_CAPTURE.cmd --exe "YOUR_INSTALLED_SKATE3_EXE"`
-can capture local Skate scenery and open it with authentic THUG physics.
+The runtime loads worlds without rebuilding. Select the original courtyard in
+the hub's map library, or **Capture Skate area and test** to import local Skate
+scenery and open it with authentic THUG physics after an automatic spawn/ollie/landing check.
 Read [capture and import instructions](docs/SKATE3_WORLD_IMPORT.md).
 Source-format fixtures pass; the first owner retail capture remains unverified.
 This uses visible triangles with generic concrete, not original Skate collision or gameplay.

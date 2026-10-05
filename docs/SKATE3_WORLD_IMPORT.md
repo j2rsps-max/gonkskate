@@ -1,4 +1,9 @@
-# v0.6.6: Skate scenery + authentic THUG physics
+# Skate scenery + authentic THUG physics
+
+v0.7.0 puts this workflow behind **GONKSKATE.cmd → Capture Skate area and test**,
+with a saved library, native spawn/ollie/landing acceptance and one results ZIP.
+Follow [start here](../START_HERE.md) for the current owner test. The lower-level
+commands below remain available for diagnostics and custom crop options.
 
 This update makes the first combination practical to try: capture a visible
 piece of Skate 3 on your PC, import its triangles, then run original THUG skating
@@ -72,7 +77,7 @@ actual capture filename:
 ```
 
 The `.scene.jsonl`, `.buffers.bin` and `.gsnap` companions must remain together.
-`--no-play` imports without launching. Imported worlds are saved under ignored
+`--no-play` imports and checks spawn/ollie/landing without launching. Imported worlds are saved under ignored
 `local-worlds\`; the printed JSON path can be passed to `RUN_PLAYABLE.cmd --world`
 for subsequent runs. Installed game files, configurations and saves are not
 edited by the helper. Normal game startup can update the game's own files.
@@ -85,8 +90,7 @@ Release packages contain only our original demo geometry and code/tooling.
 
 ## Other geometry and reproduction
 
-The current development branch adds a unified import command (not included in
-the original v0.6.6 ZIP). For example:
+v0.7.0 includes a unified import command and a map-library UI. For example:
 
 ```powershell
 py -3 tools\import_map.py --list-formats
@@ -114,7 +118,7 @@ flag filtering and stable tie selection. Tests compare 15,000 seeded queries
 against exhaustive triangle queries and replay imported-world movement exactly.
 Multi-rail ingestion preserves THUG's original rail manager and state physics.
 World files are loaded before constructing the skater; they are immutable during
-simulation. Runtime reload and a world-selection UI remain future work.
+simulation. The hub selects a world before launch; live in-session reload remains future work.
 
 The importer follows upstream `WriteRecording`, `WriteMemorySnapshot`,
 `ComputeItemFingerprint` and vertex decoders. Snapshot regions are read on

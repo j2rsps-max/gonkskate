@@ -4,6 +4,10 @@ Main application decision: Skate3Recomp with original Skate gameplay and
 selectable THUG gameplay. See [integration direction](INTEGRATION_DIRECTION.md).
 Keep the standalone courtyard as a regression harness.
 
+v0.7.0 adds one owner-facing hub, a persistent map library, authentic imported
+spawn/ollie/landing acceptance, and unified result exports. The immediate owner
+milestone is [capturing and skating a local Skate area](V070_MILESTONE.md).
+
 ## Phase 0 — host architecture
 - [x] Rust workspace
 - [x] shared map manifest

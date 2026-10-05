@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 from import_skate3_scene import import_scene
+from test_imported_area import check as check_area
 
 
 def main():
@@ -75,11 +76,20 @@ def main():
         world = import_scene(scene, buffer, radius=args.radius, spawn=args.spawn, memory_path=memory)
         output = ROOT / 'local-worlds' / ('skate3-area-' + stamp + '.json')
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(world, separators=(',', ':')) + '\n')
+        output.write_text(json.dumps(world, separators=(',', ':')) + '\n', encoding='utf-8')
         report.update({'triangles': len(world['triangles']), 'rails': len(world['rails']),
                        'world_filename': output.name, 'provenance': world['provenance']})
         print(f'Imported {len(world["triangles"])} render triangles. Local world: {output}', flush=True)
         print('Generic concrete collision; no original Skate rail/material data. Back/View or R resets after a fall.', flush=True)
+        native = ROOT / ('build/thug-headless-windows/gonkskate-thug-test.exe' if sys.platform == 'win32'
+                         else 'build/thug-headless/gonkskate-thug-test')
+        try:
+            report['area_check'] = check_area(output, native, log / 'area-check')
+        finally:
+            summary = log / 'area-check/summary.json'
+            if summary.is_file():
+                report['area_check'] = json.loads(summary.read_text(encoding='utf-8'))
+        print('Area accepted: real THUG spawn, standing ollie, landing and deterministic replay.', flush=True)
         if not args.no_play:
             result = subprocess.run([sys.executable, str(ROOT / 'scripts/run-playable.py'), '--world', str(output)], cwd=ROOT)
             report['playable_exit_code'] = result.returncode
@@ -91,11 +101,12 @@ def main():
         print(str(error), file=sys.stderr, flush=True)
     finally:
         report['exit_code'] = status
-        (log / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
+        (log / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
         bundle = ROOT / 'logs' / ('GonkSkate-skate3-capture-results-' + stamp + '.zip')
         with zipfile.ZipFile(bundle, 'w', zipfile.ZIP_DEFLATED) as archive:
             # Explicit allowlist: captures and world geometry stay local.
-            for name in ['report.json', 'reference-console.txt']:
+            for name in ['report.json', 'reference-console.txt', 'area-check/summary.json',
+                         'area-check/native.txt', 'area-check/trace.csv']:
                 file = log / name
                 if file.is_file():
                     archive.write(file, name)
