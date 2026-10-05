@@ -1,9 +1,13 @@
 # Windows test pass
 
+v0.6.5 adds original-SDK host driver checks to `RUN_SKATE3_CHECK.cmd`:
+`native-sdk-check.txt` must contain both `SKATE3_DRIVER_TEST passed` and
+`SKATE3_INPUT_TEST passed`. These verify SDK input routing, not a retail guest run.
+
 If Skate3Recomp is already working, first run `RUN_SKATE3_REFERENCE.cmd --inspect-only`
 while its window is open. The v0.6.4 standalone reference-check ZIP needs only
 Python 3 and records executable/game metadata. The full playable tests below
-remain available in the v0.6.3 Windows preview package.
+remain available in the full Windows preview package.
 
 Extract the full package into a writable folder. Python 3 is required; Godot and
 both native test executables are included. Old releases remain unchanged.
@@ -81,3 +85,8 @@ wrong or did nothing. Do not send game assets or manually copy console output.
 Cloud validation covers Rust/native tests, real THUG traces, Linux/Windows SDK
 packet equality, the controller lab, and Windows scene tests under Wine. Actual
 Windows hardware and the authentic Skate guest remain to be tested locally.
+
+v0.6.5 validation: original-SDK driver routing checks pass on Linux and Windows
+under Wine, including settings open/close and vibration filters. The 180-sample
+controller-lab regression passes. The adapter CMake static-library compile check
+uses upstream headers; it does not build or run the complete retail guest.

@@ -1,6 +1,14 @@
 
 # Changelog
 
+## v0.6.5
+- Implemented a host controller driver using the actual ReXGlue InputDriver interface and original InputSystem.
+- Added an exclusive host input factory, connection/capabilities reporting, raw settings input and optional rumble request feedback.
+- Tested controller settings open/close ordering and preserved the SDK's vibration toggle/threshold behavior.
+- Added an embeddable CMake library and documented the pre-runtime factory hook and mailbox lifetime.
+- Initialized pinned SDK header dependencies and cached compilation by compiler, source, headers and flags.
+- Live guest transport, authoritative Skate simulation hooks and cross-game collision integration remain pending.
+
 ## v0.6.4
 - Added automatic discovery of the running Windows Skate3Recomp and an inspection-only reference report.
 - Reported executable identity and local game metadata without launching another game instance or bundling assets.

@@ -16,4 +16,12 @@ if (sdk/'.git').exists():
  if head(sdk)!=pin['sdk_commit']:raise SystemExit('Existing SDK differs from inspected pin; left unchanged.')
 else:run('git','submodule','update','--init','--depth','1','third_party/rexglue-sdk',cwd=checkout)
 assert head(sdk)==pin['sdk_commit']
-print('Pinned Skate3/ReXGlue reference ready; retail files are not needed for packet tests.')
+# The real InputDriver includes kernel/window headers; initialize only its
+# transitive header dependencies and the original InputSystem's configuration.
+for name in ['simde','fmt','spdlog','tomlplusplus','sdl3','cli11']:
+ path=sdk/'thirdparty'/name
+ expected=subprocess.check_output(['git','-C',str(sdk),'ls-tree','HEAD','thirdparty/'+name],text=True).split()[2]
+ if (path/'.git').exists():
+  if head(path)!=expected:raise SystemExit(f'Existing {name} differs from SDK pin; left unchanged.')
+ else:run('git','submodule','update','--init','--depth','1','thirdparty/'+name,cwd=sdk)
+print('Pinned Skate3/ReXGlue driver dependencies ready; retail files are not needed for SDK tests.')

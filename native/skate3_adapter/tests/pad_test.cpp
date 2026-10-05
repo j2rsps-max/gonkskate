@@ -13,6 +13,7 @@
 #include <rex/system/xtypes.h>
 using namespace rex;
 static void check(bool x,const char* message){if(!x){std::cerr<<message<<'\n';std::exit(1);}}
+void test_skate3_driver();
 int main(int argc,char** argv){
  if(argc==2 && std::string(argv[1])=="--pipe"){
   std::string line;
@@ -68,5 +69,6 @@ int main(int argc,char** argv){
   check((button==0 && x==0) || (button==0x1000 && x==32767) || (button==0x2000 && x==-32768),"snapshot must not tear across threads");
  }while(!done);
  writer.join();gonk_skate3_input_destroy(input);
+ test_skate3_driver();
  std::cout<<"SKATE3_INPUT_TEST passed: real SDK layout, byte order, 15 buttons, dual sticks, triggers, bounds, stable polls, disconnect, UI gating, concurrent snapshots\n";
 }

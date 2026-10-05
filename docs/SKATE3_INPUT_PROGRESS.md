@@ -71,8 +71,8 @@ An extracted dump and the installed recompilation may differ in update staging.
 
 ## Next work
 
-1. Validate real controller captures and a local upstream reference run.
-2. Implement a complete host controller driver/transport at this verified seam.
+1. Validate GonkSkate controller captures; the owner confirms controller play in the separate upstream reference.
+2. Attach live host input transport to a source-built Skate guest (SDK driver implemented in v0.6.5).
 3. Locate the authoritative player state and simulation scheduler using a running
    guest and trace probes. Render entity poses are research leads, not proven
    authoritative player transforms.
@@ -106,3 +106,20 @@ a broken installation; custom paths may need `--exe` and a separate game-root
 readiness check. Inspection contains no gameplay console trace; a launched
 reference run records console output as before. Windows automatic discovery
 still needs the owner's machine test.
+
+## v0.6.5: original SDK input-system integration
+
+The new `HostInputDriver` implements the actual SDK interface, including gamepad
+capabilities, raw UI state, connection status, empty keystroke queries and optional
+rumble feedback. `CreateHostInputSystem()` registers it as the exclusive input
+source. Tests compile original SDK InputSystem, cvar and logging sources without
+changes to the InputSystem methods and exercise actual routing, menu chords, active suppression,
+vibration filtering and shutdown. The driver preserves raw state until the SDK
+detects the menu chord, allowing the controller to close an already-open menu.
+
+See [embedding instructions and limitations](SKATE3_DRIVER_INTEGRATION.md).
+This is not connected to the owner's installed executable. Physical rumble
+forwarding, live guest transport, simulation tracing and collision-world coupling
+remain pending. No retail game physics code executes in these driver tests.
+The standalone Windows test excludes the unused SDK physical-driver factory
+from its generated translation unit; production links the complete SDK.

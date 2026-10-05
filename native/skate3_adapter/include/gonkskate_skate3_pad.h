@@ -21,6 +21,15 @@ uint8_t gonk_skate3_input_submit(GonkSkate3Input* input,uint8_t connected,const 
 // Returns SDK X_RESULT. Only slot 0 is hosted; a null output is a status query.
 // active=0 suppresses gamepad fields for guest UI gating, preserving raw state.
 uint32_t gonk_skate3_input_poll(GonkSkate3Input* input,uint32_t user_index,uint8_t active,uint8_t out_state[16]);
+// Latest rumble request from the guest, in host byte order. The host must send
+// these speeds to its physical controller; reading never consumes a request.
+typedef struct GonkSkate3Rumble {
+ uint32_t sequence;
+ uint16_t left_motor, right_motor;
+} GonkSkate3Rumble;
+uint32_t gonk_skate3_input_set_rumble(GonkSkate3Input* input,uint32_t user_index,uint16_t left_motor,uint16_t right_motor);
+// Returns success even while disconnected, so the host can observe stop requests.
+uint32_t gonk_skate3_input_get_rumble(GonkSkate3Input* input,GonkSkate3Rumble* out_rumble);
 #ifdef __cplusplus
 }
 #endif

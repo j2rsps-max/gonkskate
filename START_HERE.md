@@ -1,8 +1,10 @@
-# GonkSkate v0.6.4 — controller lab and Skate 3 input preparation
+# GonkSkate v0.6.5 — real SDK host controller driver
 
 Start with [TEST_NOTES.md](TEST_NOTES.md) for this update’s exact Windows test pass.
 `RUN_SKATE3_CHECK.cmd` opens the controller lab and reports optional local game metadata.
 Skate gameplay is not running inside GonkSkate yet.
+The controller checker now tests our host driver through the original SDK input
+system, including settings open/close and rumble request filtering.
 
 Real THUG ground/air code now runs outside the normal rendered THUG game loop.
 The test area has a synthetic floor, a grind rail, a ramp, a placeholder skater and follow camera.

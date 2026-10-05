@@ -20,7 +20,7 @@ def install(folder,packages):
  destination=base/folder;cache=destination/'packages';cache.mkdir(parents=True,exist_ok=True)
  subprocess.run(['apt-get','download',*packages],cwd=cache,env=env,check=True)
  for archive in cache.glob('*.deb'):subprocess.run(['dpkg-deb','-x',str(archive),str(destination)],check=True)
-install('llvm',[name+'=1:19.1.7-3+b1' for name in ('clang-19','libclang-cpp19','libclang-common-19-dev','libllvm19')])
+install('llvm',[name+'=1:19.1.7-3+b1' for name in ('clang-19','lld-19','libclang-cpp19','libclang-common-19-dev','libllvm19')])
 llvm_env=env.copy();llvm_env['LD_LIBRARY_PATH']=str(base/'llvm/usr/lib/x86_64-linux-gnu')
 subprocess.run([base/'llvm/usr/bin/clang++-19','--version'],env=llvm_env,check=True)
 if a.windows:

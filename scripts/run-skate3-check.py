@@ -10,7 +10,7 @@ stamp=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S-%f');
 started=datetime.datetime.now().timestamp();status=0
 report={'version':(ROOT/'VERSION').read_text().strip(),'synthetic_controller_test':a.autotest,'authentic_skate_gameplay_running':False}
 def run(name,command,env=None):
- with (log/(name+'.txt')).open('w') as out:subprocess.run(list(map(str,command)),cwd=ROOT,env=env,stdout=out,stderr=subprocess.STDOUT,check=True,timeout=60 if a.autotest else None)
+ with (log/(name+'.txt')).open('w') as out:subprocess.run(list(map(str,command)),cwd=ROOT,env=env,stdout=out,stderr=subprocess.STDOUT,check=True,timeout=(600 if name=='build' else 60) if a.autotest else None)
 try:
  report['game_files']=inspect(a.game_root)
  native=ROOT/('build/skate3-input-windows/gonkskate-skate3-input-test.exe' if sys.platform=='win32' else 'build/skate3-input/gonkskate-skate3-input-test')

@@ -40,7 +40,8 @@
 - [x] identify guest controller ingestion path (ReXGlue InputSystem → XamInputGetState)
 - [x] validate full controller guest packet encoding against real SDK types
 - [x] local controller lab, game metadata probe and reference-run diagnostics
-- [ ] implement runtime input driver/transport with connection status and UI gating
+- [x] implement host input driver against original SDK InputSystem, with connection status and UI gating
+- [ ] attach live host input transport to a source-built Skate guest
 - [ ] identify guest player transform addresses/symbols
 - [ ] identify simulation tick / scheduler hook
 - [ ] identify collision-world coupling

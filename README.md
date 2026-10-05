@@ -1,4 +1,4 @@
-# GonkSkate v0.6.4
+# GonkSkate v0.6.5
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -53,4 +53,7 @@ Read [test notes](TEST_NOTES.md) and [verified input boundary](docs/SKATE3_INPUT
 
 If Skate3Recomp is already running on Windows, `RUN_SKATE3_REFERENCE.cmd --inspect-only`
 automatically locates it and gathers metadata without starting another instance.
-The latest-state controller mailbox is SDK-tested; guest driver hookup remains pending.
+The host controller driver now registers with the original SDK InputSystem and
+preserves menu/UI gating, connection status and optional rumble feedback.
+See [driver integration](docs/SKATE3_DRIVER_INTEGRATION.md). Live guest transport,
+Skate simulation hooks and collision-world adaptation remain pending.
