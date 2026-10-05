@@ -1,4 +1,4 @@
-use gonkskate_map::{GonkMap, Vec3};
+use gonkskate_map::GonkMap;
 use gonkskate_physics_api::{InputFrame, PhysicsBackend, PlayerState};
 
 pub struct ThugBackend {

@@ -161,3 +161,72 @@ mod tests {
         assert!((normal.y - 1.0).abs() < 0.0001);
     }
 }
+
+/// Native THUG stat profile. This parameter bridge does not run skating physics.
+/// Indices follow physics.q: air, run, ollie, speed, spin, flip, switch,
+/// rail balance, lip balance, manual. Special may raise values above 10.
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub struct GonkThugStatContext {
+    pub stats: [f32; 10],
+    pub switched: u8,
+    /// 0 = low, 1 = medium, 2 = high.
+    pub difficulty: i32,
+}
+
+extern "C" {
+    fn gonk_thug_default_stat_context(context: *mut GonkThugStatContext);
+    fn gonk_thug_get_scripted_stat(
+        name: *const core::ffi::c_char,
+        context: *const GonkThugStatContext,
+        out_value: *mut f32,
+    ) -> u8;
+}
+
+impl Default for GonkThugStatContext {
+    fn default() -> Self {
+        let mut context = Self { stats: [0.0; 10], switched: 0, difficulty: 1 };
+        unsafe { gonk_thug_default_stat_context(&mut context) };
+        context
+    }
+}
+
+impl GonkThugStatContext {
+    /// Resolve a captured active THUG stat through the native C ABI.
+    /// Unknown names, embedded NULs and invalid profiles return None.
+    pub fn scripted_stat(&self, name: &str) -> Option<f32> {
+        let name = std::ffi::CString::new(name).ok()?;
+        let mut value = 0.0;
+        let found = unsafe { gonk_thug_get_scripted_stat(name.as_ptr(), self, &mut value) };
+        (found != 0).then_some(value)
+    }
+}
+
+#[cfg(test)]
+mod parameter_tests {
+    use super::*;
+
+    #[test]
+    fn native_stat_bridge_preserves_default_and_special_profiles() {
+        let mut profile = GonkThugStatContext::default();
+        assert_eq!(profile.scripted_stat("Physics_Jump_Speed_Stat"), Some(432.0));
+        assert_eq!(profile.scripted_stat("Physics_Standing_Acceleration_stat"), Some(664.5));
+        profile.stats[3] = 13.0;
+        let speed = profile.scripted_stat("Skater_Max_Max_Speed_Stat").unwrap();
+        assert!((speed - 1142.9).abs() < 0.001);
+        profile.switched = 1;
+        let ollie = profile.scripted_stat("physics_jump_speed_stat").unwrap();
+        assert!((ollie - 410.4).abs() < 0.001);
+    }
+
+    #[test]
+    fn native_stat_bridge_rejects_missing_and_invalid_values() {
+        let mut profile = GonkThugStatContext::default();
+        assert_eq!(profile.scripted_stat("Physics_spine_lean_stat"), None);
+        assert_eq!(profile.scripted_stat("Physics_Jump\0_Speed_Stat"), None);
+        profile.stats[2] = f32::NAN;
+        assert_eq!(profile.scripted_stat("Physics_Jump_Speed_Stat"), None);
+        profile.difficulty = 9;
+        assert_eq!(profile.scripted_stat("Skater_Max_Speed_Stat"), None);
+    }
+}

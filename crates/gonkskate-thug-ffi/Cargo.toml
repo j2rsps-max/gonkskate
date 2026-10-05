@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 gonkskate-map = { path = "../gonkskate-map" }
+
+[build-dependencies]
+cc = "1"

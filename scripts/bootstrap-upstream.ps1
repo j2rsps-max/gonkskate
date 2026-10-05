@@ -20,18 +20,9 @@ if (-not (Test-Path $thug)) {
         -Description "git clone"
     if ($code -ne 0) { throw "git clone failed with exit code $code" }
 } else {
-    Write-Host "kisak-thug already exists; refreshing it..."
-    $code = Invoke-GonkNative `
-        -Command { git -C $thug fetch --depth 1 origin master } `
-        -LogPath (Join-Path $LogDir "git-fetch.txt") `
-        -Description "git fetch"
-    if ($code -ne 0) { throw "git fetch failed with exit code $code" }
+    # A reference checkout may contain adapter work. Never reset it during tests.
+    Write-Host "Using existing kisak-thug checkout without changing its HEAD or files."
 
-    $code = Invoke-GonkNative `
-        -Command { git -C $thug reset --hard origin/master } `
-        -LogPath (Join-Path $LogDir "git-reset.txt") `
-        -Description "git reset"
-    if ($code -ne 0) { throw "git reset failed with exit code $code" }
 }
 
 $oldPreference = $ErrorActionPreference

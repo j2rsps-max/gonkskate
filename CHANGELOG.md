@@ -1,6 +1,15 @@
 
 # Changelog
 
+## v0.6.0-dev
+- Added native scripted-stat evaluation and Rust C ABI integration.
+- Captured 18 active core stat definitions with provenance; retained unresolved references.
+- Verified interpolation against exact upstream code across 20,000 cases.
+- Corrected parameter comparison to ignore comments and non-skating overrides.
+- Added portable readiness runner, Cargo.lock, native parameter tests, and cloud setup instructions.
+- Preserved existing upstream checkouts during bootstrap.
+- Authentic native ground/air simulation remains under development.
+
 ## v0.5.1
 - Fixed false Cargo failure caused by Windows PowerShell 5.1 converting benign native stderr to `NativeCommandError`.
 - Added shared native-command wrapper that logs stdout/stderr but judges success by process exit code.

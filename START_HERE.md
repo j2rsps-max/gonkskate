@@ -1,3 +1,9 @@
+# GonkSkate v0.6.0-dev
+
+Native parameter integration is implemented and tested. Real THUG ground/air
+simulation remains the next milestone. See `docs/V06_NATIVE_PROGRESS.md` for
+verified results, gaps, and exact test commands. History packages remain intact.
+
 # GonkSkate v0.5.1 — Windows Test Hotfix
 
 This is the cumulative v0.5 package with two harness fixes discovered by the

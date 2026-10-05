@@ -16,7 +16,7 @@ $failureReason = ""
 try {
     Write-Host ""
     Write-Host "============================================"
-    Write-Host " GonkSkate v0.5.1 Integration Readiness Test"
+    Write-Host " GonkSkate v0.6.0-dev Integration Readiness Test"
     Write-Host "============================================"
     Write-Host "Root: $Root"
     Write-Host "Logs: $LogDir"
@@ -85,6 +85,12 @@ try {
         -Description "native ABI smoke executable"
     if ($code -ne 0) { throw "Native ABI smoke executable failed with exit code $code" }
 
+    $code = Invoke-GonkNative `
+        -Command { ctest --test-dir $nativeBuild -C Release --output-on-failure } `
+        -LogPath (Join-Path $LogDir "native-parameter-tests.txt") `
+        -Description "native parameter tests"
+    if ($code -ne 0) { throw "Native parameter tests failed with exit code $code" }
+
     Write-Host ""
     Write-Host "[4/7] Fetch THUG reference source"
     & (Join-Path $PSScriptRoot "bootstrap-upstream.ps1") -Root $Root -LogDir $LogDir
@@ -133,7 +139,7 @@ finally {
     Copy-Item (Join-Path $Root "VERSION") $LogDir -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $Root "native\thug_adapter\config\thug_core_physics_defaults.json") $LogDir -ErrorAction SilentlyContinue
 
-    $resultZip = Join-Path $Root ("logs\GonkSkate-v0.5.1-results-" + $stamp + ".zip")
+    $resultZip = Join-Path $Root ("logs\GonkSkate-v0.6.0-dev-results-" + $stamp + ".zip")
     Compress-Archive -Path (Join-Path $LogDir "*") -DestinationPath $resultZip -Force
 
     Write-Host ""

@@ -1,4 +1,4 @@
-# GonkSkate v0.5
+# GonkSkate v0.6.0-dev
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -34,3 +34,9 @@ v0.5 is cumulative and includes exact v0.1–v0.4 archives under `history/`.
 
 This package contains no retail THUG/THUG2/Skate 3 game assets. Future import
 tools should operate on files supplied locally by the user from their own copies.
+
+## Current native progress
+
+See [v0.6 native progress](docs/V06_NATIVE_PROGRESS.md). The Rust FFI crate now
+links the native THUG parameter evaluator. Skating simulation is still a
+prototype until the real THUG core is integrated.
