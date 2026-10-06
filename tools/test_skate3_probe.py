@@ -1,12 +1,13 @@
 """Presentation trace integrity, ambiguous identities and safe source staging."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
 import unittest
 
 from analyze_skate3_probe import analyze, KINDS
-from stage_skate3_probe import ROOT, SKATE_PIN, stage, git
+from stage_skate3_probe import ROOT, SKATE_PIN, THUG_PIN, stage, git, runtime_files
 
 
 class TraceTests(unittest.TestCase):
@@ -98,6 +99,47 @@ class TraceTests(unittest.TestCase):
 
 
 class StagingTests(unittest.TestCase):
+    def runtime_fixture(self, folder):
+        folder.mkdir()
+        binary=folder/"gonkskate-thug-runtime.dll"
+        binary.write_bytes(b"synthetic staging fixture, not executable")
+        implib=folder/"gonkskate-thug-runtime.lib";implib.write_bytes(b"synthetic import fixture")
+        def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+        headers={"native/thug_adapter/include/"+name:sha(ROOT/"native/thug_adapter/include"/name)
+            for name in ("gonkskate_thug_runtime.h","gonkskate_thug.h")}
+        manifest={"mode":"library","test_hooks":False,"target":"windows","tick_hz":60,
+            "upstream_commit":THUG_PIN,"runtime_abi_version":1,"adapter_source_sha256":headers,
+            "executable_sha256":sha(binary),"import_library_sha256":sha(implib),
+            "abi_header_sha256":headers["native/thug_adapter/include/gonkskate_thug_runtime.h"]}
+        (folder/"manifest.json").write_text(json.dumps(manifest))
+        return manifest
+
+    def test_runtime_stage_hashes_and_production_boundary(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder=Path(temporary)/"runtime";manifest=self.runtime_fixture(folder)
+            _,files=runtime_files(folder)
+            self.assertEqual(len(files),6)
+            (folder/"gonkskate-thug-runtime.dll").write_bytes(b"changed")
+            with self.assertRaises(ValueError):runtime_files(folder)
+            manifest["test_hooks"]=True
+            (folder/"manifest.json").write_text(json.dumps(manifest))
+            with self.assertRaises(ValueError):runtime_files(folder)
+
+    def test_frontend_runtime_handshake_and_copy_whitelist(self):
+        source=ROOT/"external/skate3"
+        if not (source/"src/skate3_native_render.cpp").exists():self.skipTest("Pinned upstream required")
+        with tempfile.TemporaryDirectory(dir=ROOT/"build") as temporary:
+            folder=Path(temporary);runtime=folder/"runtime";self.runtime_fixture(runtime)
+            (runtime/"private-owner-file.txt").write_text("do not copy")
+            destination=stage(source,folder/"source",runtime)
+            app=(destination/"src/skate3_app_common.cpp").read_text()
+            self.assertEqual(app.count("gonk_thug_runtime_abi_version()"),1)
+            self.assertNotIn("gonk_thug_runtime_step(",app)
+            self.assertNotIn("private-owner-file.txt",str(list(destination.rglob("*"))))
+            manifest=json.loads((destination/"gonkskate-probe-manifest.json").read_text())
+            self.assertFalse(manifest["thug_runtime"]["gameplay_attached"])
+            self.assertFalse(manifest["retail_code_executed"])
+
     def test_pinned_stage_preserves_checkout_and_existing_output(self):
         source=ROOT/"external/skate3"
         if not (source/"src/skate3_native_render.cpp").exists():

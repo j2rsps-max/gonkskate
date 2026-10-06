@@ -1,15 +1,4 @@
-#include <sk/components/skatercorephysicscomponent.h>
-#include <sk/components/skaterstatecomponent.h>
-#include <sk/components/skaterflipandrotatecomponent.h>
-#include <sk/components/skaterrotatecomponent.h>
-#include <sk/components/skaterscorecomponent.h>
-#include <sk/components/skaterbalancetrickcomponent.h>
-#include <gel/components/inputcomponent.h>
-#include <gel/components/trickcomponent.h>
-#include <gel/components/triggercomponent.h>
-#include <gel/components/movablecontactcomponent.h>
-#include <gel/components/walkcomponent.h>
-#include <gel/scripting/struct.h>
+#include "session.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -17,9 +6,15 @@
 #include <map>
 #include <vector>
 #include <gonkskate_thug.h>
-namespace Headless {void enable_rails();void load_world(const std::string&);GonkVec3 spawn();GonkVec3 facing();extern uint64 frame,collisions,lookups;extern std::map<std::string,uint64> peripheral;}
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+namespace Headless {void load_world(const std::string&);extern uint64_t frame;extern std::map<std::string,uint64_t> peripheral;}
 struct Input {int push=0,crouch=0,left=0,right=0,brake=0,grind=0,reset=0;};
-int main(int argc,char** argv) {
+static int run_cli(int argc,char** argv) {
     bool probe=false,pipe=false;std::string scenario="ollie",world_path;int modes=0;
     for(int i=1;i<argc;++i){
      std::string arg=argv[i];
@@ -33,31 +28,8 @@ int main(int argc,char** argv) {
         std::cerr<<"Usage: gonkskate-thug-test [--pipe | --scenario idle|ollie|steer|soak|rail|rail_jump|ramp] [--world file.gonkworld]\n";return 2;
     }
     if(!world_path.empty())try{Headless::load_world(world_path);}catch(const std::exception& error){std::cerr<<"WORLD_ERROR "<<error.what()<<'\n';return 2;}
-    auto skater=new Obj::CSkater;
-    skater->AddComponent(new Obj::CSkaterStateComponent);
-    skater->AddComponent(new Obj::CInputComponent);
-    skater->AddComponent(new Obj::CSkaterScoreComponent);
-    skater->AddComponent(new Obj::CTrickComponent);
-    auto control=new Obj::CSkaterPhysicsControlComponent;skater->AddComponent(control);
-    auto core=new Obj::CSkaterCorePhysicsComponent;skater->AddComponent(core);
-    auto rotate=new Obj::CSkaterRotateComponent;skater->AddComponent(rotate);
-    skater->AddComponent(new Obj::CTriggerComponent);
-    skater->AddComponent(new Obj::CWalkComponent);
-    skater->AddComponent(new Obj::CSkaterBalanceTrickComponent);
-    skater->AddComponent(new Obj::CMovableContactComponent);
-    skater->AddComponent(new Obj::CSkaterSoundComponent);
-    skater->AddComponent(new Obj::CSkaterFlipAndRotateComponent);
-    if(pipe || !world_path.empty() || scenario=="rail" || scenario=="rail_jump" || scenario=="ramp") Headless::enable_rails();
-    Script::CStruct params;
-    for(Obj::CBaseComponent* c=GetSkaterStateComponentFromObject(skater);c;c=c->GetNext()) c->InitFromStructure(&params);
-    auto set_spawn=[&]{
-     auto p=Headless::spawn(),f=Headless::facing();skater->m_pos.Set(p.x,p.y,p.z);skater->m_old_pos=skater->m_pos;
-     skater->m_matrix.Ident();skater->m_matrix[Z].Set(f.x,0,f.z,0);skater->m_matrix[X].Set(f.z,0,-f.x,0);
-     skater->SetDisplayMatrix(skater->m_matrix);
-    };
-    core->Finalize();rotate->Finalize();set_spawn();core->Reset();
-    if(scenario=="ramp") {skater->m_pos[X]=-480;skater->m_old_pos=skater->m_pos;}
-    if(probe) {Obj::CManual manual;manual.DoManualPhysics();return 1;}
+    Headless::Session session(pipe || !world_path.empty() || scenario=="rail" || scenario=="rail_jump" || scenario=="ramp",scenario=="ramp");
+    if(probe){session.probe_peripheral();return 1;}
     std::cout<<std::setprecision(9)<<"frame,push,crouch,left,right,brake,x,y,z,vx,vy,vz,fx,fy,fz,state,terrain,rail,landed,queries,lookups,adapter_calls,grind,reset,ux,uy,uz\n"<<std::flush;
     for(Headless::frame=0;pipe || Headless::frame<(scenario=="soak" ? 10000:360);++Headless::frame) {
         Input input;
@@ -81,28 +53,32 @@ int main(int argc,char** argv) {
             if(scenario=="steer") {input.left=Headless::frame>=60 && Headless::frame<120;input.right=Headless::frame>=240 && Headless::frame<270;input.brake=Headless::frame>=300;input.push=Headless::frame>=30 && Headless::frame<300;}
             if(scenario=="soak") {input.crouch=Headless::frame%180>=120 && Headless::frame%180<150;input.left=Headless::frame%600>=200 && Headless::frame%600<300;}
         }
-        auto& pad=GetInputComponentFromObject(skater)->GetControlPad();
-        if(input.reset) {pad.Zero();core->InitFromStructure(&params);set_spawn();core->Reset();skater->m_old_pos=skater->m_pos;}
-        pad.m_square.Update(input.push ? 255:0);
-        pad.m_x.Update(input.crouch ? 255:0);
-        pad.m_left.Update(input.left ? 255:0);
-        pad.m_right.Update(input.right ? 255:0);
-        pad.m_triangle.Update(input.grind ? 255:0);
-        pad.m_down.Update(input.brake ? 255:0);
-        auto before_queries=Headless::collisions,before_lookups=Headless::lookups;
-        uint64 before_calls=0;for(auto& p:Headless::peripheral) before_calls+=p.second;
-        control->Update();core->Update();rotate->Update();
-        // Original SkaterAdjustPhysics Update stores this after core/rotate.
-        // Its rendered/moving-object adjustments are outside this static-world profile.
-        skater->m_old_pos=skater->m_pos;
-        uint64 calls=0;for(auto& p:Headless::peripheral) calls+=p.second;
+        Headless::Controls controls{uint8_t(input.push*255),uint8_t(input.crouch*255),uint8_t(input.left*255),uint8_t(input.right*255),uint8_t(input.brake*255),uint8_t(input.grind*255),uint8_t(input.reset)};
+        const auto state=session.tick(controls);
         std::cout<<Headless::frame<<','<<input.push<<','<<input.crouch<<','<<input.left<<','<<input.right<<','<<input.brake<<','
-                 <<skater->m_pos[X]<<','<<skater->m_pos[Y]<<','<<skater->m_pos[Z]<<','
-                 <<skater->m_vel[X]<<','<<skater->m_vel[Y]<<','<<skater->m_vel[Z]<<','
-                 <<skater->m_matrix[Z][X]<<','<<skater->m_matrix[Z][Y]<<','<<skater->m_matrix[Z][Z]<<','
-                 <<core->GetState()<<','<<core->GetTerrain()<<','<<core->GetRailNode()<<','<<core->HaveLandedThisFrame()<<','
-                 <<Headless::collisions-before_queries<<','<<Headless::lookups-before_lookups<<','<<calls-before_calls<<','<<input.grind<<','<<input.reset<<','<<skater->m_matrix[Y][X]<<','<<skater->m_matrix[Y][Y]<<','<<skater->m_matrix[Y][Z]<<'\n'<<std::flush;
+                 <<state.position.x<<','<<state.position.y<<','<<state.position.z<<','
+                 <<state.velocity.x<<','<<state.velocity.y<<','<<state.velocity.z<<','
+                 <<state.forward.x<<','<<state.forward.y<<','<<state.forward.z<<','
+                 <<state.state<<','<<state.terrain<<','<<state.rail<<','<<state.landed<<','
+                 <<state.queries<<','<<state.lookups<<','<<state.adapter_calls<<','<<input.grind<<','<<input.reset<<','
+                 <<state.up.x<<','<<state.up.y<<','<<state.up.z<<'\n'<<std::flush;
     }
     for(auto& p:Headless::peripheral) std::cerr<<"ADAPTER_CALL "<<p.first<<' '<<p.second<<'\n';
-    delete skater;
+    return 0;
 }
+#ifdef _WIN32
+int wmain(int argc,wchar_t** wide){
+    // Windows provides UTF-16 arguments. The shared world reader/API uses UTF-8.
+    std::vector<std::string> storage(argc);std::vector<char*> args(argc+1,nullptr);
+    for(int index=0;index<argc;++index){
+        const int bytes=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,wide[index],-1,nullptr,0,nullptr,nullptr);
+        if(!bytes){std::cerr<<"Invalid Unicode command argument\n";return 2;}
+        storage[index].resize(bytes);
+        if(!WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,wide[index],-1,storage[index].data(),bytes,nullptr,nullptr))return 2;
+        storage[index].pop_back();args[index]=storage[index].data();
+    }
+    return run_cli(argc,args.data());
+}
+#else
+int main(int argc,char** argv){return run_cli(argc,argv);}
+#endif

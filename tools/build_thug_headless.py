@@ -6,9 +6,20 @@ import re
 root=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--target',choices=['linux','windows'],default='linux')
+parser.add_argument('--mode',choices=['executable','library'],default='executable')
+parser.add_argument('--test-hooks',action='store_true',help='Library-only fault-boundary test export; never package this variant')
 a=parser.parse_args()
 windows=a.target=='windows'
-build=root/('build/thug-headless-windows' if windows else 'build/thug-headless');code=build/'code'
+library=a.mode=='library'
+if a.test_hooks and not library:parser.error('--test-hooks requires --mode library')
+upstream=root/'external/kisak-thug'
+upstream_commit=subprocess.check_output(['git','-C',str(upstream),'rev-parse','HEAD'],text=True).strip()
+if upstream_commit!='98b4e24921446ccd4b157453e25697f9574f0053':
+ raise SystemExit('THUG reference differs from the inspected pin; left unchanged.')
+directory='thug-runtime' if library else 'thug-headless'
+if windows:directory+='-windows'
+if a.test_hooks:directory+='-test'
+build=root/'build'/directory;code=build/'code'
 subprocess.run([sys.executable,root/'tools/prepare_thug_headless.py',root/'external/kisak-thug',code],check=True)
 g,s=physics_tables((root/'external/kisak-thug/Scripts/game/skater/physics.q').read_text())
 rows=['static const Scalar scalars[] = {']
@@ -40,6 +51,10 @@ triangles+=['static const float test_rail[2][3]={'+','.join('{'+','.join(str(flo
 environ=os.environ.copy();environ['LD_LIBRARY_PATH']='/workspace/tooling/llvm/usr/lib/x86_64-linux-gnu'
 cxx=os.environ.get('GONK_CLANG','/workspace/tooling/llvm/usr/bin/clang++-19')
 flags=['-std=c++17','-fms-extensions','-fdelayed-template-parsing','-D__PLAT_GONK__','-ffunction-sections','-fdata-sections','-Wno-register','-Wno-writable-strings','-Wno-comment','-Wno-extra-tokens','-Wno-string-plus-int', '-I'+str(code),'-I'+str(code/'sk'),'-I'+str(build),'-I'+str(root/'native/thug_adapter/include')]
+if library:
+ flags+=['-DGONK_THUG_EMBEDDED','-DGONK_THUG_RUNTIME_BUILD','-pthread']
+ if not windows:flags+=['-fPIC','-fvisibility=hidden']
+ if a.test_hooks:flags+=['-DGONK_THUG_RUNTIME_TESTING']
 if windows:
  mingw=Path(os.environ.get('GONK_MINGW','/workspace/tooling/mingw/usr'))
  gcc=mingw/'lib/gcc/x86_64-w64-mingw32/14-posix'
@@ -50,13 +65,15 @@ header_hash=hashlib.sha256(repr(flags).encode())
 header_hash.update(subprocess.check_output([cxx,'--version'],env=environ))
 for header in sorted((root/'native/thug_adapter/include').glob('*.h')):
  header_hash.update(header.read_bytes())
+for header in sorted((root/'native/thug_adapter/headless').glob('*.h')):
+ header_hash.update(header.read_bytes())
 for header in sorted(code.rglob('*')):
  if header.suffix in ('.h','.inl'):header_hash.update(header.read_bytes())
 header_hash.update((build/'physics_scalars.inc').read_bytes())
 header_hash.update((build/'grind_table.inc').read_bytes())
 header_hash.update((build/'test_world.inc').read_bytes())
 objects=[]
-for unit in [code/u for u in units]+[root/'native/thug_adapter/headless/runtime.cpp',root/'native/thug_adapter/headless/main.cpp',root/'native/thug_adapter/headless/rail_runtime.cpp',root/'native/thug_adapter/src/thug_params.cpp',root/'native/thug_adapter/src/thug_flat_world.cpp',root/'native/thug_adapter/src/thug_mesh_world.cpp',root/'native/thug_adapter/src/gonk_world.cpp']:
+for unit in [code/u for u in units]+[root/'native/thug_adapter/headless/runtime.cpp',root/('native/thug_adapter/headless/runtime_api.cpp' if library else 'native/thug_adapter/headless/main.cpp'),root/'native/thug_adapter/headless/session.cpp',root/'native/thug_adapter/headless/rail_runtime.cpp',root/'native/thug_adapter/src/thug_params.cpp',root/'native/thug_adapter/src/thug_flat_world.cpp',root/'native/thug_adapter/src/thug_mesh_world.cpp',root/'native/thug_adapter/src/gonk_world.cpp']:
  obj=build/(unit.stem+'.o');objects.append(obj)
  digest=hashlib.sha256(header_hash.digest()+unit.read_bytes()).hexdigest()
  stamp=obj.with_suffix('.sha256')
@@ -83,12 +100,23 @@ for name in missing:
            f'.text\n{".globl" if windows else ".weak"} {name}\n{directive}\n{name}:\nleaq label_{len(traps)}(%rip), {register}\njmp gonk_unexpected_symbol']
 (build/'traps.S').write_text('\n'.join(traps)+('' if windows else '\n.section .note.GNU-stack,"",@progbits\n'))
 subprocess.run([cxx,*flags,'-c',str(build/'traps.S'),'-o',str(build/'traps.o')],env=environ,check=True)
-executable=build/('gonkskate-thug-test.exe' if windows else 'gonkskate-thug-test')
-subprocess.run([cxx,*flags,*map(str,objects),str(build/'traps.o'),'-Wl,--gc-sections',*(['-static','-pthread'] if windows else []),'-o',str(executable)],env=environ,check=True)
+executable=build/(('gonkskate-thug-runtime.dll' if windows else 'libgonkskate-thug-runtime.so') if library else ('gonkskate-thug-test.exe' if windows else 'gonkskate-thug-test'))
+link_flags=['-Wl,--gc-sections']
+if library:
+ link_flags+=['-shared']
+ if windows:link_flags+=['-static','-Wl,--out-implib='+str(build/'gonkskate-thug-runtime.lib')]
+ else:
+  exports=build/'exports.map';exports.write_text('GONK_RUNTIME_1 { global: gonk_thug_runtime_*; local: *; };\n')
+  link_flags+=['-Wl,--version-script='+str(exports),'-Wl,-z,defs','-Wl,-soname,libgonkskate-thug-runtime.so']
+elif windows:link_flags+=['-static','-pthread','-municode']
+subprocess.run([cxx,*flags,*map(str,objects),str(build/'traps.o'),*link_flags,'-o',str(executable)],env=environ,check=True)
 manifest={'upstream_commit':subprocess.check_output(['git','-C',str(root/'external/kisak-thug'),'rev-parse','HEAD'],text=True).strip(),
-          'world_sha256':hashlib.sha256((root/'worlds/test_area.json').read_bytes()).hexdigest(),'runtime_world_version':1,'target':a.target,'tick_hz':60,'units':[str(u.relative_to(root)) for u in [code/u for u in units]],
+          'world_sha256':hashlib.sha256((root/'worlds/test_area.json').read_bytes()).hexdigest(),'runtime_world_version':1,'target':a.target,'mode':a.mode,'test_hooks':a.test_hooks,'runtime_abi_version':1 if library else None,'tick_hz':60,'units':[str(u.relative_to(root)) for u in [code/u for u in units]],
           'core_source_sha256':hashlib.sha256((root/'external/kisak-thug/Code/Sk/Components/SkaterCorePhysicsComponent.cpp').read_bytes()).hexdigest(),
           'executable_sha256':hashlib.sha256(executable.read_bytes()).hexdigest(),
+          'abi_header_sha256':hashlib.sha256((root/'native/thug_adapter/include/gonkskate_thug_runtime.h').read_bytes()).hexdigest() if library else None,
+          'import_library_sha256':hashlib.sha256((build/'gonkskate-thug-runtime.lib').read_bytes()).hexdigest() if library and windows else None,
+          'adapter_source_sha256':{p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in (root/'native/thug_adapter').rglob('*') if p.is_file()},
           'fail_fast_symbols':[subprocess.check_output(['c++filt',n],text=True).strip() for n in missing if any(f'{".globl" if windows else ".weak"} {n}\n' in t for t in traps)]}
 (build/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(executable)

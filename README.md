@@ -93,6 +93,14 @@ Skate simulation hooks and collision-world adaptation remain pending.
 
 ## Skate frontend development checkpoint
 
+Real THUG now builds as an embeddable Windows DLL/Linux library. Optional Skate
+source staging links it and checks its ABI at startup. Native library traces
+match the existing executable, including rails and the 10,000-tick run.
+A source-backed THUG skeleton importer starts the character pipeline.
+See [runtime checks and frontend build helper](docs/THUG_EMBEDDED_RUNTIME.md)
+and [character import progress](docs/CHARACTER_IMPORT_PROGRESS.md).
+Live Skate player attachment and complete character meshes/animations remain pending.
+
 The development source now stages an opt-in presentation probe into pinned
 Skate3Recomp. Ten existing wrappers observe actor poses, animation jobs,
 view membership and caller addresses while preserving original game calls.

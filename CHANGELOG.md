@@ -1,7 +1,14 @@
 
 # Changelog
 
-## Unreleased — Skate frontend observation
+## Unreleased — embedded THUG runtime and character rigs
+- Extracted a reusable authentic THUG session shared by the CLI and versioned Windows/Linux runtime libraries, with fixed ticks, original state IDs, per-tick metrics and creator-thread ownership.
+- Contained unsupported dependencies/mapped assertions as host-visible errors, rejected partially failed sessions, and cleared default feeler caches during teardown after interrupted updates.
+- Added production-runtime linkage/ABI handshake to optional Skate source staging, hash-verified binary/header copying and a shared CMake import/copy module.
+- Matched six executable/library scenarios on Linux and Windows under Wine, including the 10,000-tick soak; verified a Windows MSVC-ABI host and relocated Linux CMake host.
+- Added a source-backed THUG SKE v2 rig importer, preserving float32 neutral/inverse-bind semantics; compared 830 synthetic bones against original loader/math code. Meshes, animations and retail rig validation remain pending.
+- Added a Windows development check with replay/hash validation, optional local rig import and diagnostic-only result ZIP, plus a logged local Skate source-build helper.
+- Fixed the staged frontend's remaining hardcoded SDK crypto header path, and added hash-verified reuse of installed TU3 patches without requiring the original STFS package.
 - Added opt-in read-only hooks around ten existing Skate3Recomp presentation wrappers, preserving original imports and renderer/palette ordering.
 - Added guarded double-copy BE pose validation, bounded asynchronous JSONL recording, explicit queue-loss/limit reporting and safe shutdown lifetime.
 - Added conservative trace analysis that keeps controlled-player identity and simulation timing unresolved.

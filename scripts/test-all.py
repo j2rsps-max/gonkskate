@@ -41,6 +41,7 @@ try:
         smoke = next(build.rglob('gonkskate_abi_smoke.exe'))
     run('abi-smoke', [smoke])
     run('q-parser-tests', [sys.executable, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_thug_q.py', '-v'])
+    run('thug-rig-format', [sys.executable, 'tools/test_thug_rig.py'])
     run('world-import-formats', [sys.executable, 'tools/test_world_import.py'])
     run('map-import-dispatch', [sys.executable, 'tools/test_map_import.py'])
     run('hub-persistence-and-results', [sys.executable, 'tools/test_project_hub.py'])

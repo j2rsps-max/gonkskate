@@ -21,6 +21,9 @@
 #include <string>
 #include <cstdarg>
 #include <iostream>
+#ifdef GONK_THUG_EMBEDDED
+#include "embedded_fault.h"
+#endif
 
 namespace Headless {
 uint64 frame=0;
@@ -34,7 +37,11 @@ void called(const char* name) { ++peripheral[name]; }
     fprintf(stderr,"UNSUPPORTED frame=%llu %s\n",static_cast<unsigned long long>(frame),name);
     // Preserve the event/dependency identity even when a trap exits mid-update.
     for(const auto& call:peripheral) fprintf(stderr,"ADAPTER_CALL %s %llu\n",call.first.c_str(),static_cast<unsigned long long>(call.second));
+#ifdef GONK_THUG_EMBEDDED
+    throw Fault(4,name);
+#else
     std::exit(3);
+#endif
 }
 uint32 checksum(const char* text) {
     uint32 crc=0xffffffff;
@@ -69,7 +76,13 @@ char sprintf_storage[8192];
 char* sprintf_pad=sprintf_storage;
 void pad_printf(const char* format, ...) { va_list args;va_start(args,format);vsnprintf(sprintf_pad,sizeof(sprintf_storage),format,args);va_end(args); }
 void Assert(char* file, unsigned int line, char* message) {
-    std::cerr << "THUG ASSERT " << file << ':' << line << " " << (message?message:"") << '\n';std::exit(4);
+    std::cerr << "THUG ASSERT " << file << ':' << line << " " << (message?message:"") << '\n';
+#ifdef GONK_THUG_EMBEDDED
+    char detail[512];snprintf(detail,sizeof(detail),"%s:%u %s",file,line,message?message:"");
+    throw Headless::Fault(5,detail);
+#else
+    std::exit(4);
+#endif
 }
 }
 namespace Spt { void* Class::operator new(size_t size) { auto p=calloc(1,size); if(!p) throw std::bad_alloc();return p; } }

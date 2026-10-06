@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <filesystem>
 #include <numeric>
 #include <stdexcept>
 
@@ -10,7 +11,7 @@ namespace {
 float axis(GonkVec3 v,int i){return i==0 ? v.x : i==1 ? v.y : v.z;}
 struct Reader {
  std::ifstream input;
- explicit Reader(const std::string& path):input(path,std::ios::binary){if(!input)throw std::runtime_error("Cannot open world");}
+ explicit Reader(const std::string& path):input(std::filesystem::u8path(path),std::ios::binary){if(!input)throw std::runtime_error("Cannot open world");}
  uint32_t word(){unsigned char b[4];if(!input.read(reinterpret_cast<char*>(b),4))throw std::runtime_error("Truncated world");return uint32_t(b[0])|(uint32_t(b[1])<<8)|(uint32_t(b[2])<<16)|(uint32_t(b[3])<<24);}
  float scalar(){uint32_t bits=word();float f;std::memcpy(&f,&bits,4);if(!std::isfinite(f)||std::abs(f)>10000000)throw std::runtime_error("Invalid world coordinate");return f;}
  GonkVec3 vector(){float x=scalar(),y=scalar(),z=scalar();return {x,y,z};}

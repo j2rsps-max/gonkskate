@@ -67,6 +67,14 @@ void enable_rails(){
  if(!imported){static GonkThugMeshWorld mesh={test_triangles,sizeof(test_triangles)/sizeof(test_triangles[0]),1};world.user=&mesh;world.query=gonk_thug_mesh_query;}
  rails_enabled=true;Obj::GonkRailLoader::load(*Mdl::Skate::Instance()->GetRailManager());
 }
+void clear_environment(){
+ Mdl::Skate::Instance()->GetRailManager()->Cleanup();
+ imported_world=Gonk::World{};imported=false;rails_enabled=false;
+ world={GONK_THUG_COLLISION_ABI_VERSION,nullptr,gonk_thug_flat_plane_query};
+ extern uint64 frame,collisions,lookups;
+ extern std::map<std::string,uint64> peripheral;
+ frame=collisions=lookups=0;peripheral.clear();
+}
 }
 // Preserve original do_grind_trick's table selection. The script VM is not
 // executed: this profile records the selected animation/trick script explicitly.

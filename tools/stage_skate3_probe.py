@@ -16,6 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SKATE_PIN = "f6e0ae87fdfecbadb5c1e36c55d66a744187a3cd"
 SDK_PIN = "7eb0faf7787f5e01333c228b8e3f03c32f7295ea"
+THUG_PIN = "98b4e24921446ccd4b157453e25697f9574f0053"
 # Address, argument register, entry marker, exit marker. These are existing
 # upstream presentation wrappers, not inferred authoritative simulation hooks.
 HOOKS = {
@@ -80,16 +81,25 @@ def patch_render(text):
     return '#include "gonkskate_probe/integration/skate3_probe.h"\n' + text
 
 
-def patch_app(text):
+def patch_app(text, embedded=False):
     for function, call in [("OnPostSetup", "Start"), ("OnShutdown", "Stop")]:
         marker = f"void Skate3BaseApp::{function}() {{"
         if text.count(marker) != 1:
             raise ValueError(f"Expected lifecycle hook: {function}")
         text = text.replace(marker, marker + f"\n  gonkskate::guest_probe::{call}();")
+    if embedded:
+        # Load/link handshake only. No guessed physics cadence or guest writes.
+        marker = "void Skate3BaseApp::OnPostSetup() {"
+        text = text.replace(marker, marker + '''
+  const auto thug_abi = gonk_thug_runtime_abi_version();
+  if (thug_abi != GONK_THUG_RUNTIME_ABI)
+    throw std::runtime_error("GonkSkate THUG runtime ABI mismatch");
+  REXLOG_INFO("GonkSkate THUG runtime ABI {} loaded; gameplay attachment pending", thug_abi);''')
+        text = '#include <gonkskate_thug_runtime.h>\n#include <stdexcept>\n' + text
     return '#include "gonkskate_probe/integration/skate3_probe.h"\n' + text
 
 
-def patch_cmake(text):
+def patch_cmake(text, embedded=False):
     version = '''skate3_resolve_version(SKATE3_FULL_VERSION
     FLOOR_VERSION ${PROJECT_VERSION}
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})'''
@@ -102,15 +112,80 @@ def patch_cmake(text):
     if text.count(crypto) != 1:
         raise ValueError("Expected upstream SDK crypto source")
     text = text.replace(crypto, '    "${REXSDK_DIR}/thirdparty/crypto/sha256.cpp"')
-    return text + '''
+    condition = 'if(NOT SKATE3_EFFECTIVE_TITLE_UPDATE_PACKAGE STREQUAL "")'
+    if text.count(condition) != 3:
+        raise ValueError("Expected three upstream title-update activation conditions")
+    text = text.replace(condition, 'if(NOT SKATE3_EFFECTIVE_TITLE_UPDATE_PACKAGE STREQUAL "" OR NOT GONKSKATE_STAGED_TU_ROOT STREQUAL "")')
+    marker = 'set(SKATE3_PATCHED_DEFAULT_XEX_LINE "")'
+    settings = '''set(GONKSKATE_STAGED_TU_ROOT "" CACHE PATH "Existing local TU3 patch root; inputs stay untouched")
+if(NOT GONKSKATE_STAGED_TU_ROOT STREQUAL "" AND NOT SKATE3_EFFECTIVE_TITLE_UPDATE_PACKAGE STREQUAL "")
+    message(FATAL_ERROR "Choose installed TU3 patches or an STFS package, not both")
+endif()
+'''
+    text = text.replace(marker, settings + marker, 1)
+    text = text.replace('if(NOT EXISTS "${SKATE3_EFFECTIVE_TITLE_UPDATE_PACKAGE}")',
+        'if(GONKSKATE_STAGED_TU_ROOT STREQUAL "" AND NOT EXISTS "${SKATE3_EFFECTIVE_TITLE_UPDATE_PACKAGE}")', 1)
+    start = text.index('    add_custom_command(\n        OUTPUT\n            "${SKATE3_TITLE_UPDATE_DEFAULT_XEX}"')
+    end = text.index('    add_custom_target(skate3-title-update-codegen-inputs', start)
+    original = text[start:end]
+    pin = json.loads((ROOT / "native/skate3_adapter/config/upstream.json").read_text())
+    hashes = {item["path"]: item["sha256"] for item in pin["title_update_payloads"]}
+    installed = '''    if(NOT GONKSKATE_STAGED_TU_ROOT STREQUAL "")
+        include(src/gonkskate_probe/integration/SkateTitleUpdate.cmake)
+        gonkskate_stage_installed_tu("${SKATE3_GAME_DATA_ROOT}" "${GONKSKATE_STAGED_TU_ROOT}"
+            "${SKATE3_TITLE_UPDATE_CODEGEN_ROOT}"
+            "''' + hashes["default.xexp"] + '''"
+            "''' + hashes["data/webkit/EAWebkit.xexp"] + '''")
+    else()
+''' + original + '''    endif()
+
+'''
+    text = text[:start] + installed + text[end:]
+    text += '''
 # GonkSkate presentation observer. Runtime recording remains opt-in.
 add_subdirectory(src/gonkskate_probe)
 target_sources(skate3 PRIVATE src/gonkskate_probe/integration/skate3_probe.cpp)
 target_link_libraries(skate3 PRIVATE gonkskate_skate3_probe)
+target_include_directories(skate3 PRIVATE "${REXSDK_DIR}/thirdparty/crypto")
 '''
+    if embedded:
+        text += '''
+# Real THUG runtime loaded in the Skate frontend; gameplay ownership pending.
+include(src/gonkskate_thug_runtime/SkateThugRuntime.cmake)
+gonkskate_embed_thug(skate3 "${CMAKE_CURRENT_SOURCE_DIR}/src/gonkskate_thug_runtime")
+'''
+    return text
 
 
-def stage(source, destination):
+def runtime_files(folder):
+    """Whitelist and verify production binaries/headers before copying anything."""
+    folder = folder.resolve()
+    manifest_path = folder / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    if (manifest.get("mode") != "library" or manifest.get("test_hooks") is not False or
+        manifest.get("runtime_abi_version") != 1 or manifest.get("tick_hz") != 60 or
+        manifest.get("upstream_commit") != THUG_PIN or manifest.get("target") not in ("linux", "windows")):
+        raise ValueError("Expected a pinned production THUG runtime ABI 1 (test hooks forbidden)")
+    windows = manifest["target"] == "windows"
+    binary = "gonkskate-thug-runtime.dll" if windows else "libgonkskate-thug-runtime.so"
+    files = {binary: (folder / binary, manifest.get("executable_sha256"))}
+    if windows:
+        files["gonkskate-thug-runtime.lib"] = (folder / "gonkskate-thug-runtime.lib", manifest.get("import_library_sha256"))
+    for header in ("gonkskate_thug_runtime.h", "gonkskate_thug.h"):
+        key = "native/thug_adapter/include/" + header
+        files["include/" + header] = (ROOT / key, manifest.get("adapter_source_sha256", {}).get(key))
+    if files["include/gonkskate_thug_runtime.h"][1] != manifest.get("abi_header_sha256"):
+        raise ValueError("Runtime header provenance differs")
+    for name, (path, expected) in files.items():
+        if not expected or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError(f"Runtime provenance/hash mismatch: {name}")
+    files["manifest.json"] = (manifest_path, hashlib.sha256(manifest_path.read_bytes()).hexdigest())
+    cmake = ROOT / "native/thug_adapter/integration/SkateThugRuntime.cmake"
+    files[cmake.name] = (cmake, hashlib.sha256(cmake.read_bytes()).hexdigest())
+    return manifest, files
+
+
+def stage(source, destination, runtime=None):
     source, destination = source.resolve(), destination.resolve()
     sdk = source / "third_party/rexglue-sdk"
     if destination.exists() or destination == source or source in destination.parents:
@@ -120,11 +195,16 @@ def stage(source, destination):
             raise ValueError(f"{label} differs from inspected source pin")
         if git(path, "status", "--porcelain", "--untracked-files=no").strip():
             raise ValueError(f"{label} has tracked changes; preserve/reconcile them before staging")
+    embedded, runtime_copy = runtime_files(runtime) if runtime is not None else (None, {})
     originals = {name: git(source, "show", f"HEAD:{name}").decode()
-                 for name in ["src/skate3_native_render.cpp", "src/skate3_app_common.cpp", "CMakeLists.txt"]}
+                 for name in ["src/skate3_native_render.cpp", "src/skate3_app_common.cpp", "src/skate3_title_update_installer.cpp", "CMakeLists.txt"]}
+    crypto_header = '#include "third_party/rexglue-sdk/thirdparty/crypto/sha256.h"'
+    if originals["src/skate3_title_update_installer.cpp"].count(crypto_header) != 1:
+        raise ValueError("Expected the pinned SDK crypto header include")
     patched = {"src/skate3_native_render.cpp": patch_render(originals["src/skate3_native_render.cpp"]),
-               "src/skate3_app_common.cpp": patch_app(originals["src/skate3_app_common.cpp"]),
-               "CMakeLists.txt": patch_cmake(originals["CMakeLists.txt"])}
+               "src/skate3_app_common.cpp": patch_app(originals["src/skate3_app_common.cpp"], embedded is not None),
+               "src/skate3_title_update_installer.cpp": originals["src/skate3_title_update_installer.cpp"].replace(crypto_header, '#include <sha256.h>'),
+               "CMakeLists.txt": patch_cmake(originals["CMakeLists.txt"], embedded is not None)}
     archive = git(source, "archive", "HEAD")
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         members = tar.getmembers()
@@ -147,6 +227,14 @@ def stage(source, destination):
             probe_source = ROOT / "native/skate3_probe"
             shutil.copytree(probe_source, destination / "src/gonkskate_probe",
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            for name, (path, expected) in runtime_copy.items():
+                target = destination / "src/gonkskate_thug_runtime" / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                # Recheck bytes while copying rather than trusting a mutable source.
+                data = path.read_bytes()
+                if hashlib.sha256(data).hexdigest() != expected:
+                    raise ValueError(f"Runtime changed during staging: {name}")
+                target.write_bytes(data)
             # Separate development preset inherits the tested upstream toolchain.
             presets = {"version": 6, "configurePresets": [], "buildPresets": []}
             for name, parent in [("gonkskate-probe", "relwithdebinfo"),
@@ -160,9 +248,13 @@ def stage(source, destination):
             (destination / "gonkskate-probe.patch").write_text(diff, encoding="utf-8", newline="\n")
             tracked = [destination / name for name in patched]
             tracked += sorted((destination / "src/gonkskate_probe").rglob("*"))
+            tracked += sorted((destination / "src/gonkskate_thug_runtime").rglob("*"))
             manifest = {"schema_version": 1, "skate3_commit": SKATE_PIN, "sdk_commit": SDK_PIN,
                 "scope": "presentation-only", "player_identity": "unresolved", "simulation_tick": "unresolved",
                 "retail_code_executed": False, "hooks": HOOKS,
+                "thug_runtime": ({"abi_version": 1, "target": embedded["target"],
+                    "upstream_commit": THUG_PIN, "binary_sha256": embedded["executable_sha256"],
+                    "gameplay_attached": False} if embedded is not None else None),
                 "original_sha256": {name: hashlib.sha256(text.encode()).hexdigest() for name, text in originals.items()},
                 "staged_sha256": {p.relative_to(destination).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                                   for p in tracked if p.is_file()}}
@@ -177,10 +269,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, default=ROOT / "external/skate3")
     parser.add_argument("--output", type=Path, default=ROOT / "build/skate3-probe-source")
+    parser.add_argument("--thug-runtime", type=Path, help="Optional production library build directory; links THUG into the frontend")
     args = parser.parse_args()
     try:
-        path = stage(args.source, args.output)
-    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+        path = stage(args.source, args.output, args.thug_runtime)
+    except (ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"Staging failed: {error}\n")
     print(f"Staged source: {path}\nReview: {path / 'gonkskate-probe.patch'}")
     print("Build and recording instructions: docs/SKATE3_GUEST_PROBE.md")

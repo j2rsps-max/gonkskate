@@ -110,7 +110,7 @@ Validated in this pass:
 - Linux contracts under address, undefined-behavior and thread sanitizers.
 - Windows x64 contracts and wrapper execution under Wine; owner Windows
   execution of this development probe is pending.
-- Seven Python tests covering NPC ambiguity, paused repeated poses, address
+- Nine Python tests covering NPC ambiguity, paused repeated poses, address
   reuse, partial/lost/limited streams, malformed poses and safe source staging.
 
 The complete source-built Skate application has **not** been built or run here.
@@ -119,9 +119,14 @@ test does not replace that validation.
 
 ## Source-build path for the next live checkpoint
 
+For a production THUG DLL linked into the same frontend build, use the
+[embedded runtime checkpoint/build helper](THUG_EMBEDDED_RUNTIME.md).
+Manual staging accepts `--thug-runtime bin/thug-runtime`. This adds a load-time
+ABI check, with gameplay attachment still pending; recording remains opt-in.
+
 This is a developer path, separate from the v0.8.0 workshop retest. It needs
 the pinned upstream/SDK, all SDK submodules, upstream platform dependencies,
-Clang and Ninja, and locally extracted game files plus the matching TU3 package.
+Clang and Ninja, and locally extracted game files plus matching TU3 patches or a package.
 On Windows use an x64 Native Tools shell with Clang 18+ (upstream recommends
 20+) and CMake 3.25+. An installed release executable alone cannot accept these
 source hooks. Read upstream README for graphics/toolchain requirements.
@@ -148,7 +153,7 @@ Remove-Item Env:GONKSKATE_GUEST_PROBE_DIR
 Judge native commands by exit codes and stop on failure. A new staging directory
 is required for another pass; existing output is intentionally never overwritten.
 The generated user preset points to the original pinned SDK tree. The staged
-CMake patch fixes upstream's hardcoded crypto path and stamps a distinct probe
+CMake patch fixes upstream's hardcoded crypto source/header paths and stamps a distinct probe
 version instead of inheriting GonkSkate's parent Git tags. Linux uses the
 `gonkskate-probe-linux` preset and upstream Clang 20/platform dependencies.
 

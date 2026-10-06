@@ -71,6 +71,10 @@ publishing retail-derived worlds or character assets.
 Development source now stages tested read-only presentation hooks into pinned
 Skate3Recomp; see [the guest probe checkpoint](SKATE3_GUEST_PROBE.md). A full
 source-built retail guest and gameplay switch have not yet been validated.
+The authentic THUG core is now available as a versioned DLL/shared library,
+with optional frontend linkage and an ABI startup handshake. See
+[embedded runtime progress](THUG_EMBEDDED_RUNTIME.md). This prepares in-process
+attachment; the live guest ownership boundaries remain unresolved.
 The owner's successful courtyard run validates the standalone THUG side,
 not the live guest hooks or retail imports. Current pins and test evidence are
 in SKATE3_DRIVER_INTEGRATION.md, SKATE3_WORLD_IMPORT.md and WINDOWS_VALIDATION.md.

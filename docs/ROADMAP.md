@@ -25,7 +25,9 @@ milestone is [capturing and skating a local Skate area](V070_MILESTONE.md).
 - [x] enumerate all components required by `CSkaterCorePhysicsComponent::Finalize()`
 - [x] isolate direct core physics/script-parameter dependencies
 - [x] preserve stat-backed physics interpolation without full script VM
-- [ ] build standalone THUG adapter library against kisak-thug
+- [x] build standalone THUG adapter library against kisak-thug (versioned production Windows/Linux runtime)
+- [x] preserve executable traces and report native failures to an embedding host
+- [x] stage frontend CMake linkage and ABI handshake, with MSVC-ABI/relocation fixtures
 - [x] boot real THUG ground physics against a synthetic flat plane
 - [x] real ollie / airborne / landing loop
 - [x] real rail acquisition + rail movement against synthetic rail
@@ -104,6 +106,8 @@ Character appearance must be selected independently of map, physics, scoring,
 camera and rules. A THPS character on a THUG map with another physics backend
 should not require that character's original game's movement system.
 
+- [x] THUG v2 SKE hierarchy/rest-pose/inverse-bind importer with source differential checks
+- [ ] owner retail rig validation and matching mesh/material/animation import
 - [ ] normalized character package: mesh/materials, skeleton, animation mapping,
       source-game provenance and importer version
 - [ ] import user-supplied Tony Hawk character files, covering THPS and later games
@@ -113,7 +117,8 @@ should not require that character's original game's movement system.
 - [ ] support compatible modded Skate 3 character packages after base import works
 - [ ] character selector and per-rig animation retargeting
 
-These are proposed capabilities, not confirmed format support. Importers operate
+The implemented rig profile and limits are in [CHARACTER_IMPORT_PROGRESS.md](CHARACTER_IMPORT_PROGRESS.md).
+The broader character targets are proposed capabilities. Importers operate
 on local game/mod files; retail character assets are not bundled. Keep the
 procedural mannequin until ground/air, rails and imported world collision are
 stable. Animation fidelity will require its own validation rather than assuming
