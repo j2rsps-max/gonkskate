@@ -27,7 +27,7 @@ Source and project history are on [main](https://github.com/j2rsps-max/gonkskate
 
 ## Integration and character development check
 
-[Download the engine/animated-character development check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-829425e.zip) — 1.7 MB, source `829425e`.
+[Download the engine/textured-character development check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-5299504.zip) — 1.7 MB, source `5299504`.
 
 Extract this into a **new folder** and run `RUN_INTEGRATION_CHECK.cmd`. Python
 3.10+ is required. Return `logs/GonkSkate-integration-results-TIMESTAMP.zip`.
@@ -35,7 +35,7 @@ This console check runs authentic THUG through the new embeddable DLL and
 verifies ground/air/rail replay against the existing executable. Keep the
 v0.8.0 package for playable workshop testing.
 
-Run `RUN_CHARACTER_CHECK.cmd` for 21 asset-free skeleton/mesh/animation/export tests.
+Run `RUN_CHARACTER_CHECK.cmd` for 26 asset-free skeleton/mesh/texture/animation/export tests.
 It produces `logs/GonkSkate-character-results-TIMESTAMP.zip`. To import a
 matching local THUG PC skeleton and skin:
 
@@ -48,6 +48,14 @@ under `local-characters/`. Use `--weight-profile xbox` for the inspected origina
 Xbox decoder. Extensions alone do not verify compatibility. The importer checks
 joint ranges but cannot establish that two files are the correct asset pair.
 Read `docs/CHARACTER_IMPORT_PROGRESS.md` for supported profiles and viewer checks.
+To embed the first material pass from a matching original texture dictionary:
+
+```powershell
+.\RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9 --textures "C:\path\to\character.tex.xbx"
+```
+
+The local importer supports THUG's swizzled 8/16/32-bit images and DXT1/DXT5.
+Original blend, environment, UV-animation and multipass effects remain metadata.
 To animate the rig with a matching original full skeletal clip:
 
 ```powershell
@@ -60,9 +68,10 @@ files (2048 bytes each). The importer reports missing tables; it rejects
 unsupported partial overlays, events and camera/object clips.
 Preview samples use original THUG math at 60 Hz with STEP interpolation.
 If a viewer resamples animation, retain 60 Hz. Clip and rig bone counts must
-match; indexed tracks cannot prove the correct rig identity. Textures, retail
-appearance, gameplay animation selection and playable character attachment
-remain pending. No retail or derived character assets enter download/results ZIPs.
+match; indexed tracks cannot prove the correct rig identity. Retail texture
+validation, original shader effects, gameplay animation selection and playable
+character attachment remain pending. No retail or derived character assets enter
+download/results ZIPs.
 
 Original Windows C++ reader fixtures match 26 synthetic files/390 vertices.
 Both weight profiles and strip conversion match upstream. Four rigged GLBs
@@ -72,6 +81,9 @@ Unicode-path local synthetic imports, diagnostics and native replay also pass.
 Original animation readers and complete pose samplers match 27 synthetic clips,
 4156 decoded keys and 8128 poses. Five animated GLBs pass Khronos validation
 with zero errors/warnings and actual engine playback/weighted deformation.
+The exact original texture unswizzle and stream layout match 24 dictionaries,
+60 textures and 120 mips. Six textured GLBs pass actual-engine exact RGBA checks
+and Khronos validation with zero errors/warnings.
 
 The ZIP also includes a logged Windows source-build helper for linking THUG
 into the Skate frontend, with reuse of hash-verified installed TU3 patches.
@@ -79,7 +91,7 @@ Read `docs/THUG_EMBEDDED_RUNTIME.md`. The library/MSVC-ABI and native replay
 tests passed under Wine; full retail source-build and live Skate player control
 still need owner-side validation and player/tick/collision investigation.
 
-SHA256: `c9d1e0a6fa2b12322298ec76eaa947a1aae9cd57bb219cedfa2f78822247184d`
+SHA256: `9dd29190cf12faf8af06e38e868f6d23cb21c2c492cace0a9a277fd8544f0bef`
 
 The [previous geometry check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-cc1e549.zip)
 and [skeleton-only check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-c390904.zip) are preserved.
