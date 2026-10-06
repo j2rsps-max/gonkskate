@@ -1,5 +1,8 @@
 # v0.7.0 milestone: one hub, repeatable local-world tests
 
+Owner results arrived on 2026-10-06: the hub and first retail capture worked,
+but wall/contact paths stopped native physics. See [v0.7.1 fixes and retest](V071_HOTFIX.md).
+
 GonkSkate now has one Windows entry point, `GONKSKATE.cmd`, rather than requiring
 the owner to choose among developer scripts. The hub saves the installed
 Skate3Recomp executable and a local map library. Capture/import performs an

@@ -1,6 +1,15 @@
 
 # Changelog
 
+## v0.7.1
+- Fixed a bonk-sound trap and added explicit, instrumented handling of flail, GroundGone and ground wall-push events while preserving original core collision response and Update ordering.
+- Kept unaudited events fail-fast, adding their checksum and accumulated dependency counters to failure diagnostics.
+- Added Back/View and R recovery after native process failure, with separate trace segments and persistent failure history.
+- Fixed falsely successful playable/hub reports after a native stop, including when the window closes normally or resumes after recovery.
+- Added four synthetic contact/drop/replay/reset cases; old Windows binaries reproduce the failures and patched Windows/Linux traces match exactly.
+- Tested actual child death and both controller/keyboard recovery on Linux and Windows Godot/native executables under Wine.
+- Recorded the owner's first retail Skate capture: 5,415 triangles, deterministic standing ollie/landing, followed by unsupported-contact stops. Captured rail metadata remains absent.
+
 ## v0.7.0
 - Added GONKSKATE.cmd and a single hub for linked Skate installation, game launch, saved map library and results.
 - Added real THUG flat-spawn, standing-ollie, landing and identical-replay acceptance before captured/imported-area play.

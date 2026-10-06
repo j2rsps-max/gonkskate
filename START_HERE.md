@@ -1,4 +1,13 @@
-# GonkSkate v0.7.0 — start here
+# GonkSkate v0.7.1 — start here
+
+Updating from v0.7.0: close the hub/test window, then copy the **contents** of
+the new package's `GonkSkate-v0.7.1` folder into your existing GonkSkate folder,
+replacing included files. The package contains no `user/` or `local-worlds/` data,
+so your saved installation, captures and map library remain. Keep the older ZIP.
+Run **GONKSKATE.cmd → Run milestone check**, then select your existing Skate area
+in **Map library → Play with THUG**. Retest the walls/ledges that stopped physics;
+you do not need a new capture. Return the new milestone-results ZIP.
+See [hotfix notes](docs/V071_HOTFIX.md).
 
 Extract the full Windows ZIP into a writable folder. Double-click
 **GONKSKATE.cmd** to open the hub. Python 3 with Tkinter is required; the standard

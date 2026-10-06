@@ -31,7 +31,10 @@ static_assert(vTERRAIN_CONCSMOOTH==GONK_THUG_TERRAIN_CONCRETE_SMOOTH);
 std::map<std::string, uint64> peripheral;
 void called(const char* name) { ++peripheral[name]; }
 [[noreturn]] void unsupported(const char* name) {
-    fprintf(stderr,"UNSUPPORTED frame=%llu %s\n",static_cast<unsigned long long>(frame),name); std::exit(3);
+    fprintf(stderr,"UNSUPPORTED frame=%llu %s\n",static_cast<unsigned long long>(frame),name);
+    // Preserve the event/dependency identity even when a trap exits mid-update.
+    for(const auto& call:peripheral) fprintf(stderr,"ADAPTER_CALL %s %llu\n",call.first.c_str(),static_cast<unsigned long long>(call.second));
+    std::exit(3);
 }
 uint32 checksum(const char* text) {
     uint32 crc=0xffffffff;
@@ -91,7 +94,19 @@ void CObject::SelfEvent(uint32 event,Script::CStruct*) {
     Headless::called(("SelfEvent:"+std::to_string(event)).c_str());
     // Flat-floor profile replaces the Ollied script handler with its public
     // Jump command. The core computes tense time before emitting this event.
-    if(event!=0x8ffefb28 && event!=0x532b16ef && event!=0xafaa46ba) Headless::unsupported("unexpected skater self-event");
+    // Core already sets AIR before GroundGone, and bounce_off_wall computes
+    // velocity/orientation around FlailLeft/Right. Their tricks.q handlers select
+    // animation/rumble/trick queues and stop balance, absent in this profile.
+    // Record the missing presentation explicitly; retain the original physics.
+    if(event==0x3b1001b6) {Headless::called("GroundGone:no-animation-or-script-trick-queues");return;}
+    if(event==0xb4101d70 || event==0x756a7535) {Headless::called(event==0xb4101d70 ? "FlailLeft:no-animation-or-rumble":"FlailRight:no-animation-or-rumble");return;}
+    // Ground_Wallpush's Init_Wallpush is notification/rumble; the original core
+    // reflects/damps velocity after this event. Model flip/score are unrendered.
+    if(event==0x4c03635b) {Headless::called("WallPush:no-animation-or-script-score");return;}
+    if(event!=0x8ffefb28 && event!=0x532b16ef && event!=0xafaa46ba) {
+        char message[96];snprintf(message,sizeof(message),"unexpected skater self-event crc=0x%08x",event);
+        Headless::unsupported(message);
+    }
     if(event==0x8ffefb28) {
         Script::CStruct params;
         GetSkaterCorePhysicsComponentFromObject(static_cast<CCompositeObject*>(this))->CallMemberFunction(0x584cf9e9,&params,nullptr);
@@ -163,6 +178,7 @@ CManual::CManual() {}
 CManual::~CManual() {}
 void CSkaterSoundComponent::PlayLandSound(float,ETerrainType) {Headless::called("PlayLandSound");}
 void CSkaterSoundComponent::PlayJumpSound(float,ETerrainType) {Headless::called("PlayJumpSound");}
+void CSkaterSoundComponent::PlayBonkSound(float,ETerrainType) {Headless::called("PlayBonkSound:no-audio");}
 void CTriggerComponent::CheckFeelerForTrigger(int,CFeeler& feeler) {Headless::called("CheckFeelerForTrigger");if(feeler.GetTrigger()) Headless::unsupported("world trigger");}
 bool CMovableContactComponent::CheckForMovableContact(CFeeler& feeler) {Headless::called("CheckForMovableContact");if(feeler.IsMovableCollision()) Headless::unsupported("moving collision");return false;}
 CSkaterCareer::CSkaterCareer() {}

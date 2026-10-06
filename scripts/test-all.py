@@ -44,6 +44,7 @@ try:
     run('world-import-formats', [sys.executable, 'tools/test_world_import.py'])
     run('map-import-dispatch', [sys.executable, 'tools/test_map_import.py'])
     run('hub-persistence-and-results', [sys.executable, 'tools/test_project_hub.py'])
+    run('session-health', [sys.executable, 'tools/test_session_health.py'])
     upstream = ROOT / 'external/kisak-thug'
     if not upstream.exists():
         run('thug-clone', ['git', 'clone', '--depth', '1', 'https://github.com/SwagSoftware/kisak-thug.git', upstream])
@@ -71,6 +72,8 @@ try:
         run('real-core-build', [sys.executable, 'tools/build_thug_headless.py'])
     if executable.exists():
         run('real-core-behavior', [sys.executable, 'tools/test_thug_headless.py', executable, '--output', LOG / 'real-core'])
+        run('wall-and-edge-contacts', [sys.executable, 'tools/test_geometry_contacts.py', '--executable', executable,
+                                      '--output', LOG / 'contacts'])
         run('imported-world-behavior', [sys.executable, 'tools/test_world_import.py', '--executable', executable,
                                        '--output', ROOT / 'logs/world-import'])
         authentic_status = 'PASS: real-core synthetic flat-floor profile'

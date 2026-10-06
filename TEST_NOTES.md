@@ -1,4 +1,14 @@
-# v0.7.0 owner test
+# v0.7.1 owner test
+
+For this hotfix, update the existing folder as described in [START_HERE.md](START_HERE.md).
+Run the milestone check, then play the **same saved Skate area**. Hit walls on the
+ground and in the air, hold Y/E near the geometry that stopped the old version,
+ride off ledges and reset. You can skip recapture. If another unsupported feature
+stops physics, press Back/View or R; finish with Escape and return the milestone
+ZIP. That session remains marked failed even after recovery, so we can investigate.
+The captured area has no annotated rails; use the courtyard for actual grinds.
+
+The original capture checklist remains below.
 
 Open **GONKSKATE.cmd** from the extracted full Windows package.
 

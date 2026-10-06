@@ -268,6 +268,9 @@ class Hub:
         try:
             if action == 'self-test':
                 self.area_check(session, self.library.maps()[0])
+                session.run('wall-and-edge-contacts', [sys.executable, 'tools/test_geometry_contacts.py',
+                            '--executable', self.native(), '--output', session.directory / 'contacts'], timeout=180)
+                session.report['contact_checks'] = json.loads((session.directory / 'contacts/summary.json').read_text(encoding='utf-8'))
                 session.run('thug-controller-integration', [sys.executable, 'scripts/run-playable.py',
                             '--world', 'worlds/courtyard.json', '--controller-autotest'], timeout=300)
                 session.run('skate-sdk-controller-integration', [sys.executable, 'scripts/run-skate3-check.py',

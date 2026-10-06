@@ -29,6 +29,10 @@ var camera_yaw := 0.0
 var camera_pitch := 0.0
 var area: Dictionary
 var spawn_y := 0.0
+var recoveries := 0
+var session_failures: Array = []
+var retired_error_pipes: Array[FileAccess] = []
+const CONTROLS := "W / ↑ push     A D / ← → steer     S / ↓ brake\nHold Space to crouch; release to ollie. E holds grind. R resets.\nEsc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Right stick looks."
 
 func mesh(parent: Node3D, shape: Mesh, color: Color, at: Vector3) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -151,9 +155,20 @@ func _ready() -> void:
 	layer.add_child(hud)
 	status.position = Vector2(38,110)
 	status.add_theme_font_size_override("font_size",15)
-	status.text = "W / ↑ push     A D / ← → steer     S / ↓ brake\nHold Space to crouch; release to ollie. E holds grind. R resets.
-Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Right stick looks."
+	status.text = CONTROLS
+	if area["rails"].is_empty():
+		status.text += "\nThis area has no grind rails. Use the courtyard to test grinding."
 	layer.add_child(status)
+	start_native()
+
+func start_native() -> void:
+	frame = 0
+	failed = false
+	paused = false
+	wants_reset = false
+	var logs := ProjectSettings.globalize_path("res://../logs")
+	DirAccess.make_dir_recursive_absolute(logs)
+	trace_path = logs.path_join("playable-%s-%d-segment%d.csv" % [Time.get_datetime_string_from_system().replace(":","-"),OS.get_process_id(),recoveries])
 	var exe := OS.get_environment("GONK_THUG_EXE")
 	if exe.is_empty():
 		exe = ProjectSettings.globalize_path("res://../build/thug-headless/gonkskate-thug-test")
@@ -175,14 +190,14 @@ Esc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Rig
 	if not header.begins_with("frame,push,crouch"):
 		stop_with_error("Native process did not provide a valid trace header.")
 		return
-	var logs := ProjectSettings.globalize_path("res://../logs")
-	DirAccess.make_dir_recursive_absolute(logs)
-	trace_path = logs.path_join("playable-%s.csv" % Time.get_datetime_string_from_system().replace(":","-"))
 	trace = FileAccess.open(trace_path,FileAccess.WRITE)
 	if trace == null:
 		stop_with_error("Cannot create the session trace: " + trace_path)
 		return
 	controller_trace = FileAccess.open(trace_path+".controller.jsonl",FileAccess.WRITE)
+	if controller_trace == null:
+		stop_with_error("Cannot create the controller trace.")
+		return
 	trace.store_line(header)
 	print("Session trace: ",trace_path)
 
@@ -190,10 +205,19 @@ func pressed(key: Key) -> bool:
 	return Input.is_physical_key_pressed(key)
 
 func _physics_process(delta: float) -> void:
-	if failed or stream == null:
-		return
 	if pressed(KEY_ESCAPE):
-		get_tree().quit()
+		get_tree().quit(0 if session_failures.is_empty() else 1)
+		return
+	if failed:
+		var recovery: Dictionary = controller.actions(controller.read())
+		if wants_reset or recovery["reset"]:
+			recoveries += 1
+			finish_native()
+			start_native()
+			if not failed:
+				status.text = "Recovered at the selected spawn. The earlier failure stays in your results.\n" + CONTROLS
+		return
+	if stream == null:
 		return
 	var push := pressed(KEY_W) or pressed(KEY_UP)
 	var crouch := pressed(KEY_SPACE)
@@ -254,6 +278,7 @@ func _physics_process(delta: float) -> void:
 	var line := stream.get_line()
 	var fields := line.split(",")
 	if fields.size()!=27 or not fields[0].is_valid_int() or int(fields[0])!=frame:
+		print("Native pipe failure: io_error=",stream.get_error()," child_exit=",OS.get_process_exit_code(int(process["pid"]))," reply=",line)
 		stop_with_error("Native process stopped at frame %d. See session logs." % frame)
 		return
 	trace.store_line(line)
@@ -302,18 +327,22 @@ func capture_preview() -> void:
 
 func stop_with_error(message: String) -> void:
 	failed = true
+	session_failures.append({"frame":frame,"segment":recoveries,"message":message})
 	push_error(message)
-	status.text = message
+	status.text = message + "\nBack/View or R restarts at spawn. Escape finishes and saves results."
 	if autotest:
 		get_tree().quit(1)
 
-func _exit_tree() -> void:
+func finish_native() -> void:
 	if controller_trace != null:
 		controller_trace.close()
+		controller_trace = null
 	if trace != null:
 		trace.close()
+		trace = null
 	if not process.is_empty():
-		stream.close()
+		if stream != null:
+			stream.close()
 		# The child exits on stdin EOF. Save its complete peripheral-call report.
 		var errors: FileAccess = process["stderr"]
 		var report := FileAccess.open(trace_path + ".adapters.log",FileAccess.WRITE)
@@ -323,6 +352,26 @@ func _exit_tree() -> void:
 				break
 			if report != null and not line.is_empty():
 				report.store_line(line)
-		errors.close()
+		if OS.get_name() == "Windows":
+			errors.close()
+		else:
+			# Godot 4.4.1 OS_Unix opens stderr with write fd 0, so closing
+			# that FileAccess closes parent stdin and breaks the next child.
+			# Retain its EOF pipe until this window exits; no private physics changes.
+			retired_error_pipes.append(errors)
 		if report != null:
 			report.close()
+	process = {}
+	stream = null
+
+func _exit_tree() -> void:
+	finish_native()
+	for errors in retired_error_pipes:
+		errors.close()
+	retired_error_pipes.clear()
+	var result_path := OS.get_environment("GONK_SCENE_RESULT")
+	if not result_path.is_empty():
+		var result := FileAccess.open(result_path,FileAccess.WRITE)
+		if result != null:
+			result.store_string(JSON.stringify({"failed":not session_failures.is_empty(),"failures":session_failures,"recoveries":recoveries,"last_segment_frames":frame}))
+			result.close()

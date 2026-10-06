@@ -15,7 +15,9 @@ The format importer and real-core path pass source-derived fixtures on Linux
 and Windows under Wine. The owner also validated the synthetic courtyard and
 controller on Windows; its 2,234-frame live trace replays exactly on Linux.
 See [Windows validation](WINDOWS_VALIDATION.md). No retail Skate capture has been tested in the cloud.
-Your first local capture is the next validation step. This is a render-geometry
+The owner has now validated capture/import and a standing ollie/landing on one
+5,415-triangle area; interactive contact issues need the [v0.7.1 retest](V071_HOTFIX.md).
+This is a render-geometry
 proof, with concrete collision, a procedural skater and simple materials.
 Skate's original collision, materials, rails, textures and gameplay are absent.
 

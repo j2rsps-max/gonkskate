@@ -1,5 +1,25 @@
 # First owner Windows validation — 2026-10-05
 
+## First owner Skate capture — 2026-10-06
+
+The v0.7.0 F10 capture/import workflow completed on the owner's PC and produced
+5,415 render triangles. Its native world SHA256 was
+`6d6975746e88c8c3328303843a07644acc45886f108bbaa9305966546f042982`.
+The standing-ollie check passed: 180 fixed ticks, 63.2000122 inch apex, landing
+at frame 83 and exact replay. The owner could skate around the captured area.
+The live controller lab also passed with 475 physical input samples, independent
+sticks and both triggers reaching 1.0.
+
+Two interactive sessions stopped at native frames 604 and 569: an unidentified
+self-event and an unimplemented bonk-sound call. The old window/launcher reported
+exit 0 despite these stops. The captured world had zero rails, and those session
+traces did not enter RAIL. v0.7.1 fixes the audited contact/event paths, failure
+reporting and reset recovery; the same captured area's retest is still pending.
+See [hotfix notes](V071_HOTFIX.md). The result ZIPs contain identity/trace data,
+not the captured world, so retail geometry has not been replayed in the cloud.
+
+## Original courtyard validation
+
 The owner ran v0.6.6's courtyard interactively on Windows and reported that
 controller input and gameplay worked well. The returned asset-free results ZIP
 confirms exit code 0, Godot 4.4.1 and rendering on the RTX 2070. This was the

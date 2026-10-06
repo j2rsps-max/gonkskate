@@ -43,7 +43,7 @@ milestone is [capturing and skating a local Skate area](V070_MILESTONE.md).
 - [x] runtime world selection, validated binary transport and indexed collision
 - [x] triangulated OBJ and Skate render-recording importers with original demo/format fixtures
 - [x] unified importer command with explicit format/unit boundaries
-- [ ] validate a retail Skate render capture on owner hardware
+- [x] validate one retail Skate render capture on owner hardware (basic spawn/ollie/landing and movement; contact issues found, v0.7.1 retest pending)
 - [ ] import one THUG level's collision
 - [ ] run real THUG physics on imported THUG collision
 

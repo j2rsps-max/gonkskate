@@ -5,12 +5,14 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tools'))
 from gonk_world import load as load_world, encode as encode_world
+from playable_results import failure_message
 STAMP=datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S-%f')
 LOG=ROOT/'logs'/('playable-'+STAMP);LOG.mkdir(parents=True)
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--autotest',action='store_true')
 parser.add_argument('--area-autotest',action='store_true')
 parser.add_argument('--controller-autotest',action='store_true')
+parser.add_argument('--recovery-test',action='store_true',help=argparse.SUPPRESS)
 parser.add_argument('--world',type=Path,default=ROOT/'worlds/test_area.json',help='Shared normalized world JSON')
 args=parser.parse_args()
 
@@ -46,6 +48,7 @@ def godot():
 exit_code=0
 started=datetime.datetime.now().timestamp()
 world_report={}
+scene_report=None
 try:
  native=ROOT/('build/thug-headless-windows/gonkskate-thug-test.exe' if sys.platform=='win32' else 'build/thug-headless/gonkskate-thug-test')
  manifest=native.parent/'manifest.json'
@@ -68,23 +71,32 @@ try:
  probe=subprocess.check_output([engine,'--version'],text=True,env=probe_env,stderr=subprocess.STDOUT).strip().splitlines()[-1].split('.')[0:2]
  if len(probe)!=2 or (int(probe[0]),int(probe[1]))<(4,4):raise RuntimeError('Godot 4.4 or later is required for native-process pipes')
  env=os.environ.copy();env['GONK_THUG_EXE']=str(native)
+ env['GONK_SCENE_RESULT']=str((LOG/'scene-result.json').resolve())
  env['GONK_WORLD_JSON']=str(world_json.resolve());env['GONK_WORLD_BINARY']=str(world_binary.resolve())
  if sys.platform!='win32':
   for key,subdir in [('XDG_DATA_HOME','data'),('XDG_CONFIG_HOME','config'),('XDG_CACHE_HOME','cache')]:
    env.setdefault(key,str(ROOT/'bin/godot'/subdir))
  run('controller-checks',[engine,'--headless','--path',ROOT/'playable','--script','res://test_controller.gd'],env)
  command=[engine,'--path',str(ROOT/'playable')]
- if args.autotest or args.area_autotest or args.controller_autotest:command+=['--headless']
+ if args.autotest or args.area_autotest or args.controller_autotest or args.recovery_test:command+=['--headless']
+ if args.recovery_test:command+=['--script','res://test_recovery.gd']
  command+=['--']+(['--controller-autotest'] if args.controller_autotest else ['--area-autotest'] if args.area_autotest else ['--autotest'] if args.autotest else [])
  print('Starting GonkSkate. W pushes, A/D steer, S brakes, hold/release Space to ollie, E grinds, R resets.',flush=True)
  with (LOG/'scene.txt').open('w') as output:
-  result=subprocess.run(command,cwd=ROOT,env=env,stdout=output,stderr=subprocess.STDOUT)
+  # Keep Python's ignored SIGPIPE on Unix: a dead physics child must produce
+  # a recoverable pipe error, rather than terminate the presentation window.
+  result=subprocess.run(command,cwd=ROOT,env=env,stdout=output,stderr=subprocess.STDOUT,restore_signals=False)
+ scene_text=(LOG/'scene.txt').read_text(encoding='utf-8',errors='replace')
+ if (LOG/'scene-result.json').exists():scene_report=json.loads((LOG/'scene-result.json').read_text(encoding='utf-8'))
+ failure=failure_message(scene_text,scene_report)
+ if failure:raise RuntimeError(failure)
  if result.returncode:raise RuntimeError(f'Scene exited {result.returncode}; see {LOG/"scene.txt"}')
- if (args.autotest or args.area_autotest or args.controller_autotest) and 'PLAYABLE_AUTOTEST passed' not in (LOG/'scene.txt').read_text():raise RuntimeError('Scene did not finish its integration test')
+ if scene_report is None:raise RuntimeError('Scene exited without its session-health report; return the results ZIP')
+ if (args.autotest or args.area_autotest or args.controller_autotest) and 'PLAYABLE_AUTOTEST passed' not in scene_text:raise RuntimeError('Scene did not finish its integration test')
 except Exception as error:
  exit_code=1;print(str(error),file=sys.stderr);(LOG/'error.txt').write_text(str(error)+'\n')
 finally:
- (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest,'controller_autotest':args.controller_autotest,'world':world_report},indent=2)+'\n')
+ (LOG/'run.json').write_text(json.dumps({'version':(ROOT/'VERSION').read_text().strip(),'exit_code':exit_code,'autotest':args.autotest,'area_autotest':args.area_autotest,'controller_autotest':args.controller_autotest,'world':world_report,'scene_health':scene_report},indent=2)+'\n')
  bundle=ROOT/'logs'/f'GonkSkate-playable-results-{STAMP}.zip'
  with zipfile.ZipFile(bundle,'w',zipfile.ZIP_DEFLATED) as z:
   for file in LOG.rglob('*'):
