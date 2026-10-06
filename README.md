@@ -104,6 +104,8 @@ Matching original texture dictionaries can now supply first-pass appearance;
 swizzled 8/16/32-bit images and DXT1/DXT5 are decoded and embedded locally.
 `RUN_CHARACTER_CHECK.cmd` runs asset-free format checks and optionally imports
 a local matched set, with diagnostic-only result ZIPs.
+`RUN_CHARACTER_IMPORT.cmd` opens a file picker for the actual local THUG files;
+run the check without arguments while the game files are unavailable.
 See [runtime checks and frontend build helper](docs/THUG_EMBEDDED_RUNTIME.md)
 and [character import progress](docs/CHARACTER_IMPORT_PROGRESS.md).
 Live Skate player attachment, retail character validation, original multipass

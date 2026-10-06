@@ -19,7 +19,7 @@ class CheckTests(unittest.TestCase):
     def test_packaged_success_and_failure_keep_assets_local(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "GonkSkate check"
-            files = ("scripts/run-character-check.py", "tools/import_thug_rig.py", "tools/import_thug_skin.py",
+            files = ("scripts/run-character-check.py", "tools/character_file_picker.py", "tools/import_thug_rig.py", "tools/import_thug_skin.py",
                      "tools/import_thug_character.py", "tools/test_thug_rig.py", "tools/test_thug_character.py",
                      "tools/import_thug_animation.py", "tools/test_thug_animation.py", "tools/import_thug_texture.py",
                      "tools/test_thug_texture.py")
@@ -41,6 +41,8 @@ class CheckTests(unittest.TestCase):
                         ([str(ske), str(skin), "--weight-profile", "dx9", "--animation", str(clip)], 0, "PARSED_LOCAL_RIGGED_PREVIEW"),
                         ([str(ske), str(skin), "--weight-profile", "dx9", "--textures", str(textures)], 0, "PARSED_LOCAL_RIGGED_PREVIEW"),
                         (["--animation", str(clip)], 1, "UNRUN"),
+                        (["--pick-files", "--weight-profile", "dx9"], 1, "UNRUN"),
+                        (["C:\\path\\character.ske.xbx", "C:\\path\\character.skin.xbx", "--weight-profile", "dx9"], 1, "UNRUN"),
                         ([str(ske), str(skin), "--weight-profile", "dx9", "--q-table", str(clip)], 1, "UNRUN")]
             before = set()
             for arguments, exit_code, imported in commands:
@@ -60,6 +62,9 @@ class CheckTests(unittest.TestCase):
                     self.assertGreaterEqual(report["synthetic_format_tests"]["tests_run"], 12)
                     self.assertEqual(report["animations_imported"], "--animation" in arguments and exit_code == 0)
                     self.assertEqual(report["textures_imported"], "--textures" in arguments and exit_code == 0)
+                    if any("C:\\path\\" in argument for argument in arguments):
+                        self.assertIn("RUN_CHARACTER_IMPORT.cmd", report["error"])
+                        self.assertIn("example", report["error"])
                     forbidden = {"positions_inches", "bones", "sectors", "joints", "weights_packed", "inverse_bind_matrix", "rig", "mesh",
                                  "tracks", "rotation_keys", "translation_keys", "xyz_short"}
                     forbidden.add("rgba")
@@ -87,7 +92,7 @@ class CheckTests(unittest.TestCase):
         # derived imports or any original compressed clip/table payload.
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            for name in ("scripts/run-character-check.py", "tools/import_thug_rig.py", "tools/import_thug_skin.py",
+            for name in ("scripts/run-character-check.py", "tools/character_file_picker.py", "tools/import_thug_rig.py", "tools/import_thug_skin.py",
                          "tools/import_thug_character.py", "tools/import_thug_animation.py", "tools/test_thug_rig.py",
                          "tools/test_thug_character.py", "tools/test_thug_animation.py", "tools/import_thug_texture.py",
                          "tools/test_thug_texture.py"):

@@ -2,6 +2,7 @@
 # Changelog
 
 ## Unreleased — embedded THUG runtime and animated character imports
+- Added a Windows character-import file picker, explicit source-platform selection and clearer missing-file errors; the no-argument character check still works without game files.
 - Added bounded original THUG texture-dictionary import for swizzled P8/A1R5G5B5/A8R8G8B8 images and linear DXT1/DXT5 mip chains, embedding first-pass textures in local GLBs without copying assets into result ZIPs.
 - Matched the exact original unswizzle routine and source stream boundaries across 24 synthetic dictionaries, 60 textures, 120 mips and 3268 pixels.
 - Validated six textured GLBs in the actual engine with exact RGBA pixel comparisons and independent Khronos checks (zero errors/warnings); unsupported multipass shader behavior stays explicit in metadata.

@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from import_thug_character import import_files
 from import_thug_skin import WEIGHT_PROFILES
+from character_file_picker import choose_character_files, validate_sources
 from test_thug_character import CharacterTests
 from test_thug_rig import RigTests
 from test_thug_animation import AnimationTests
@@ -32,6 +33,7 @@ def main():
     parser.add_argument("--q-table", type=Path, help="Matching local Q48 compression table if required")
     parser.add_argument("--t-table", type=Path, help="Matching local T48 compression table if required")
     parser.add_argument("--textures", type=Path, help="Matching local THUG texture dictionary")
+    parser.add_argument("--pick-files", action="store_true", help="Browse for actual THUG character files")
     args = parser.parse_args()
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
     log = ROOT / "logs" / ("character-check-" + stamp)
@@ -49,6 +51,18 @@ def main():
         report["synthetic_format_tests"] = {"passed": result.wasSuccessful(), "tests_run": result.testsRun}
         if not result.wasSuccessful():
             raise RuntimeError("Character format tests failed; see the result ZIP")
+        if args.pick_files:
+            if any(value is not None for value in (args.skeleton, args.skin, args.weight_profile,
+                    args.animation, args.q_table, args.t_table, args.textures)):
+                raise ValueError("Use the file picker or command-line paths; select all files in the picker.")
+            selected = choose_character_files()
+            if selected is None:
+                report["local_import"] = "CANCELLED_BY_USER"
+                report["passed"] = True
+                print("Character import cancelled. No local character was created.", flush=True)
+                return 0
+            for name, value in selected.items():
+                setattr(args, name, value)
         if bool(args.skeleton) != bool(args.skin):
             raise ValueError("Supply both the original skeleton and matching skin, or neither")
         if not args.skeleton and any(value is not None for value in (args.animation, args.q_table, args.t_table, args.textures)):
@@ -56,6 +70,9 @@ def main():
         if args.skeleton:
             if not args.weight_profile:
                 raise ValueError("Select --weight-profile dx9 for the inspected PC decoder or xbox for the original Xbox decoder")
+            selected = validate_sources(vars(args))
+            for name, value in selected.items():
+                setattr(args, name, value)
             local = ROOT / "local-characters" / ("thug-character-" + stamp)
             package = import_files(args.skeleton, args.skin, local, args.weight_profile, args.animation, args.q_table, args.t_table, args.textures)
             report["local_import"] = "PARSED_LOCAL_RIGGED_PREVIEW"
@@ -81,7 +98,7 @@ def main():
                 print("First-pass source textures are embedded in character.glb; original multi-pass effects remain metadata.", flush=True)
         else:
             print("PASS: asset-free skeleton, mesh, texture, animation and rigged-export format checks.", flush=True)
-            print('Optional PC character: RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9', flush=True)
+            print("To import actual THUG files, run RUN_CHARACTER_IMPORT.cmd and select them with Browse.", flush=True)
         report["passed"] = True
     except Exception as error:
         status = 1

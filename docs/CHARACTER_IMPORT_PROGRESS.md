@@ -20,7 +20,27 @@ The integration development ZIP includes **RUN_CHARACTER_CHECK.cmd**. With no
 arguments it runs asset-free format/export checks and creates a diagnostic ZIP.
 No native build tools, ISO or Godot install are required; Python 3.10+ is enough.
 
-For a matching pair from your local THUG PC files:
+Run it without arguments for the check, including when THUG is not installed yet:
+
+```powershell
+.\RUN_CHARACTER_CHECK.cmd
+```
+
+To import a real character, double-click **RUN_CHARACTER_IMPORT.cmd**, or run:
+
+```powershell
+.\RUN_CHARACTER_IMPORT.cmd
+```
+
+Use **Browse** to select the skeleton and matching mesh from your installed or
+extracted THUG files, then choose their original platform. Textures, an animation
+and compression tables are optional fields. Python's standard Windows installer
+includes the Tcl/Tk support used by the picker. Closing the picker creates only
+the test diagnostics and marks the import cancelled.
+
+Game files are not included in GonkSkate. All `C:\path\...` commands below are
+**examples**: replace those paths with files that actually exist on your PC.
+For command-line use with a matching pair from your local THUG PC files:
 
 ```powershell
 .\RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9

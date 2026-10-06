@@ -26,7 +26,8 @@ def main():
         set(validation.get("executable_equivalence",{}))!={"idle","ollie","steer","soak","rail","rail_jump"}):
         raise ValueError("Production runtime validation/provenance is incomplete")
     files=["RUN_INTEGRATION_CHECK.cmd","scripts/run-integration-check.py","scripts/build-skate3-integration.py",
-        "RUN_CHARACTER_CHECK.cmd","scripts/run-character-check.py","tools/import_thug_skin.py",
+        "RUN_CHARACTER_CHECK.cmd","RUN_CHARACTER_IMPORT.cmd","scripts/run-character-check.py",
+        "tools/character_file_picker.py","tools/import_thug_skin.py",
         "tools/import_thug_character.py","tools/test_thug_character.py","tools/test_thug_rig.py",
         "tools/import_thug_animation.py","tools/test_thug_animation.py",
         "tools/import_thug_texture.py","tools/test_thug_texture.py",
@@ -109,22 +110,21 @@ Real THUG ground/air/rail now runs from an embeddable DLL. The check verifies
 native contracts and deterministic movement/replay against the prior executable.
 No game files are needed. Keep the v0.8.0 playable package for workshop testing.
 
-Optional local THUG skeleton:
-RUN_INTEGRATION_CHECK.cmd "C:\\path\\to\\character.ske.xbx"
-This command imports a rig only; use RUN_CHARACTER_CHECK.cmd for mesh previews.
-The derived rig stays local; results contain diagnostics, not character assets.
-
 NEW: run RUN_CHARACTER_CHECK.cmd for 26 asset-free rig/mesh/texture/animation/export checks.
-For a matching local THUG PC skeleton and skin:
-RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9
-Use --weight-profile xbox for the inspected original Xbox decoder instead.
+This needs no game files. If THUG is not installed/extracted yet, use this check.
+
+To import a real character, double-click RUN_CHARACTER_IMPORT.cmd.
+Use Browse to select the original skeleton and its matching mesh from your
+installed/extracted THUG files. Choose their original platform (PC/DX9 or Xbox).
+Textures, an animation and any needed compression tables are optional fields.
+The picker requires Python's Tcl/Tk support (included in its standard installer).
+Game files are not included with GonkSkate; C:\path\... in older examples was
+a placeholder and must not be copied as an actual installed location.
 This creates local-characters/thug-character-TIMESTAMP/character.glb and JSON.
-The GLB is a rigged, untextured preview. Add a matching original texture dictionary:
-RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9 --textures "C:\path\to\character.tex.xbx"
-This embeds the first source material pass. DXT1/DXT5 and swizzled 8/16/32-bit
-images are supported; original multipass shader effects remain metadata.
-Add a matching original skeletal clip:
-RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9 --animation "C:\\path\\to\\skater_Push.ska.xbx"
+With a matching texture dictionary it embeds the first source material pass.
+DXT1/DXT5 and swizzled 8/16/32-bit images are supported; original multipass
+shader effects remain metadata. For command-line use, see the documentation's
+explicitly labelled examples and replace every path with an existing file.
 Select "THUG local clip" in your GLB viewer/editor's animation controls.
 For compressed clips that require lookup tables, supply matching original local
 --q-table and/or --t-table files (2048 bytes each). The importer reports missing
@@ -148,6 +148,7 @@ docs/CHARACTER_IMPORT_PROGRESS.md explains the checked skeleton/mesh profiles.
         "validation":"Windows native host and MSVC-ABI host under Wine; owner Windows validation pending",
         "retail_assets_included":False,"live_skate_player_control":False,"complete_character_import":False,
         "character_check_entry_point":"RUN_CHARACTER_CHECK.cmd","rigged_neutral_character_preview":True,
+        "character_import_picker_entry_point":"RUN_CHARACTER_IMPORT.cmd",
         "original_clip_animated_character_preview":True,"character_preview_sample_rate":60,
         "original_texture_first_pass_preview":True,
         "sha256":{name:hashlib.sha256(data).hexdigest() for name,data in {**source,**binaries,**evidence}.items()}}
