@@ -44,6 +44,7 @@ try:
     run('thug-rig-format', [sys.executable, 'tools/test_thug_rig.py'])
     run('thug-character-format', [sys.executable, 'tools/test_thug_character.py'])
     run('thug-animation-format', [sys.executable, 'tools/test_thug_animation.py'])
+    run('thug-texture-format', [sys.executable, 'tools/test_thug_texture.py'])
     run('character-result-export', [sys.executable, 'tools/test_character_check.py'])
     run('world-import-formats', [sys.executable, 'tools/test_world_import.py'])
     run('map-import-dispatch', [sys.executable, 'tools/test_map_import.py'])

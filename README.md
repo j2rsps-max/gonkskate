@@ -100,12 +100,14 @@ A source-backed THUG character importer now pairs skeleton and skin geometry
 into a local rigged GLB, preserving original weight/material/LOD metadata.
 Matching original full skeletal clips can now animate that preview using
 source-validated THUG sampling and 60 Hz export.
+Matching original texture dictionaries can now supply first-pass appearance;
+swizzled 8/16/32-bit images and DXT1/DXT5 are decoded and embedded locally.
 `RUN_CHARACTER_CHECK.cmd` runs asset-free format checks and optionally imports
-a local matched pair, with diagnostic-only result ZIPs.
+a local matched set, with diagnostic-only result ZIPs.
 See [runtime checks and frontend build helper](docs/THUG_EMBEDDED_RUNTIME.md)
 and [character import progress](docs/CHARACTER_IMPORT_PROGRESS.md).
-Live Skate player attachment, retail character validation, textures and gameplay
-animation selection remain pending.
+Live Skate player attachment, retail character validation, original multipass
+shader effects and gameplay animation selection remain pending.
 
 The development source now stages an opt-in presentation probe into pinned
 Skate3Recomp. Ten existing wrappers observe actor poses, animation jobs,

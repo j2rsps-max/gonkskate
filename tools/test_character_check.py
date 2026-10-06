@@ -10,6 +10,7 @@ import zipfile
 
 from test_thug_character import rig_fixture, skin_fixture
 from test_thug_animation import animation_fixture, compressed_branches_fixture, tables_fixture
+from test_thug_texture import texture_fixture
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,7 +21,8 @@ class CheckTests(unittest.TestCase):
             root = Path(temporary) / "GonkSkate check"
             files = ("scripts/run-character-check.py", "tools/import_thug_rig.py", "tools/import_thug_skin.py",
                      "tools/import_thug_character.py", "tools/test_thug_rig.py", "tools/test_thug_character.py",
-                     "tools/import_thug_animation.py", "tools/test_thug_animation.py")
+                     "tools/import_thug_animation.py", "tools/test_thug_animation.py", "tools/import_thug_texture.py",
+                     "tools/test_thug_texture.py")
             for name in files:
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -30,11 +32,14 @@ class CheckTests(unittest.TestCase):
             skin.write_bytes(skin_fixture())
             clip = root / "clip-π.ska"
             clip.write_bytes(animation_fixture())
+            textures = root / "textures-π.tex"
+            textures.write_bytes(texture_fixture())
             raw = skin.read_bytes()
             commands = [([], 0, "UNRUN"), ([str(ske)], 1, "UNRUN"),
                         ([str(ske), str(skin)], 1, "UNRUN"),
                         ([str(ske), str(skin), "--weight-profile", "dx9"], 0, "PARSED_LOCAL_RIGGED_PREVIEW"),
                         ([str(ske), str(skin), "--weight-profile", "dx9", "--animation", str(clip)], 0, "PARSED_LOCAL_RIGGED_PREVIEW"),
+                        ([str(ske), str(skin), "--weight-profile", "dx9", "--textures", str(textures)], 0, "PARSED_LOCAL_RIGGED_PREVIEW"),
                         (["--animation", str(clip)], 1, "UNRUN"),
                         ([str(ske), str(skin), "--weight-profile", "dx9", "--q-table", str(clip)], 1, "UNRUN")]
             before = set()
@@ -54,8 +59,10 @@ class CheckTests(unittest.TestCase):
                     self.assertFalse(report["source_pair_identity_verified"])
                     self.assertGreaterEqual(report["synthetic_format_tests"]["tests_run"], 12)
                     self.assertEqual(report["animations_imported"], "--animation" in arguments and exit_code == 0)
+                    self.assertEqual(report["textures_imported"], "--textures" in arguments and exit_code == 0)
                     forbidden = {"positions_inches", "bones", "sectors", "joints", "weights_packed", "inverse_bind_matrix", "rig", "mesh",
                                  "tracks", "rotation_keys", "translation_keys", "xyz_short"}
+                    forbidden.add("rgba")
                     def check_keys(value):
                         if isinstance(value, dict):
                             self.assertFalse(forbidden.intersection(value))
@@ -67,12 +74,13 @@ class CheckTests(unittest.TestCase):
                 self.assertEqual(skin.read_bytes(), raw)
                 self.assertEqual(ske.read_bytes(), rig_fixture())
                 self.assertEqual(clip.read_bytes(), animation_fixture())
-            self.assertEqual(len(list((root / "local-characters").rglob("character.glb"))), 2)
+                self.assertEqual(textures.read_bytes(), texture_fixture())
+            self.assertEqual(len(list((root / "local-characters").rglob("character.glb"))), 3)
             skin.write_bytes(b"unsupported layout")
             result = subprocess.run([sys.executable, str(root / "scripts/run-character-check.py"), str(ske), str(skin),
                                      "--weight-profile", "xbox"], capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 1)
-            self.assertEqual(len(list((root / "local-characters").rglob("character.glb"))), 2)
+            self.assertEqual(len(list((root / "local-characters").rglob("character.glb"))), 3)
 
     def test_missing_compression_tables_leave_diagnostic_zip(self):
         # Parser failures must produce shareable diagnostics without partial
@@ -81,7 +89,8 @@ class CheckTests(unittest.TestCase):
             root = Path(temporary)
             for name in ("scripts/run-character-check.py", "tools/import_thug_rig.py", "tools/import_thug_skin.py",
                          "tools/import_thug_character.py", "tools/import_thug_animation.py", "tools/test_thug_rig.py",
-                         "tools/test_thug_character.py", "tools/test_thug_animation.py"):
+                         "tools/test_thug_character.py", "tools/test_thug_animation.py", "tools/import_thug_texture.py",
+                         "tools/test_thug_texture.py"):
                 target = root / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / name, target)

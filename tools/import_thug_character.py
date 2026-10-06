@@ -14,6 +14,7 @@ import struct
 from import_thug_rig import MAX_BONES, parse as parse_rig
 from import_thug_skin import MAX_BYTES, MAX_VERTICES, WEIGHT_PROFILES, parse as parse_skin, triangles
 from import_thug_animation import COMPRESS_TABLE, MAX_BAKED_POSES, f32, read_clip, sample_track
+from import_thug_texture import MAX_BYTES as MAX_TEXTURE_BYTES, metadata as texture_metadata, parse as parse_textures, png
 
 
 class Glb:
@@ -21,7 +22,19 @@ class Glb:
         self.binary = bytearray()
         self.document = {"asset": {"version": "2.0", "generator": "GonkSkate THUG character importer v1"},
                          "scene": 0, "scenes": [{"nodes": [0]}], "nodes": [], "meshes": [],
-                         "skins": [], "materials": [], "bufferViews": [], "accessors": []}
+                         "skins": [], "materials": [], "textures": [], "images": [], "samplers": [],
+                         "bufferViews": [], "accessors": []}
+
+    def blob(self, data):
+        if len(self.binary) + len(data) + 4 > MAX_BYTES:
+            raise ValueError("Normalized character binary exceeds the supported size limit")
+        while len(self.binary) % 4:
+            self.binary.append(0)
+        offset = len(self.binary)
+        self.binary.extend(data)
+        index = len(self.document["bufferViews"])
+        self.document["bufferViews"].append({"buffer": 0, "byteOffset": offset, "byteLength": len(data)})
+        return index
 
     def attribute(self, rows, fmt, component, kind, bounds=False, target=None):
         if len(self.binary) + len(rows) * struct.calcsize("<" + fmt) + 4 > MAX_BYTES:
@@ -45,6 +58,9 @@ class Glb:
         return index
 
     def finish(self):
+        for name in ("textures", "images", "samplers"):
+            if not self.document[name]:
+                del self.document[name]
         self.document["buffers"] = [{"byteLength": len(self.binary)}]
         data = json.dumps(self.document, separators=(",", ":"), allow_nan=False).encode("utf-8")
         data += b" " * (-len(data) % 4)
@@ -108,7 +124,22 @@ def append_animation(glb, rig, clip):
             "animation_gameplay_mapping": False, "custom_animation_events_applied": False}
 
 
-def build(rig, mesh, animation=None):
+def append_textures(glb, dictionary):
+    result = {}
+    for texture in dictionary["textures"]:
+        image = png(texture["mips"][0]["rgba"], texture["width"], texture["height"])
+        view = glb.blob(image)
+        image_index = len(glb.document["images"])
+        glb.document["images"].append({"name": "texture_" + texture["source_id"][2:], "mimeType": "image/png", "bufferView": view,
+                                       "extras": {"source_id": texture["source_id"], "source_format": texture["format"],
+                                                  "source_mip_levels": texture["levels"]}})
+        texture_index = len(glb.document["textures"])
+        glb.document["textures"].append({"source": image_index})
+        result[texture["source_id"]] = texture_index
+    return result
+
+
+def build(rig, mesh, animation=None, texture_dictionary=None):
     if rig["inspected_upstream_commit"] != mesh["inspected_upstream_commit"]:
         raise ValueError("Skeleton and mesh use different inspected source profiles")
     glb = Glb()
@@ -129,6 +160,7 @@ def build(rig, mesh, animation=None):
     inverse = glb.attribute([column_major(b["inverse_bind_matrix"]) for b in bones], "16f", 5126, "MAT4")
     glb.document["skins"].append({"name": "THUG original rig", "joints": list(range(1, len(bones) + 1)),
                                   "skeleton": 1, "inverseBindMatrices": inverse})
+    texture_ids = append_textures(glb, texture_dictionary) if texture_dictionary is not None else {}
     material_ids = {}
     for material in mesh["materials"]:
         if not material["dictionary_effective"]:
@@ -136,10 +168,25 @@ def build(rig, mesh, animation=None):
         material_ids[material["source_id"]] = len(glb.document["materials"])
         # A neutral surface makes missing textures explicit. Source descriptors
         # stay in character.json; source shaders/blend modes are not approximated.
-        glb.document["materials"].append({"name": "untextured_" + material["source_id"][2:], "doubleSided": True,
-            "pbrMetallicRoughness": {"baseColorFactor": [0.65, 0.65, 0.65, 1], "metallicFactor": 0, "roughnessFactor": 1},
-            "extras": {"source_material_id": material["source_id"], "textures_imported": False,
-                       "source_render_effects_applied": False}})
+        first = material["passes"][0]
+        textured = bool(first["flags"] & 4)
+        texture_index = texture_ids.get(first["texture_id"])
+        if texture_dictionary is not None and textured and texture_index is None:
+            raise ValueError("Texture dictionary is missing a material's first-pass texture: " + first["texture_id"])
+        pbr = {"baseColorFactor": [1, 1, 1, 1] if texture_index is not None else [0.65, 0.65, 0.65, 1],
+               "metallicFactor": 0, "roughnessFactor": 1}
+        if texture_index is not None:
+            pbr["baseColorTexture"] = {"index": texture_index, "texCoord": 0}
+        entry = {"name": ("textured_" if texture_index is not None else "untextured_") + material["source_id"][2:],
+                 "doubleSided": not material["single_sided"] or material["no_backface_culling"],
+                 "pbrMetallicRoughness": pbr,
+                 "extras": {"source_material_id": material["source_id"], "textures_imported": texture_index is not None,
+                            "source_texture_id": first["texture_id"], "source_pass_count": len(material["passes"]),
+                            "source_render_effects_applied": False,
+                            "preview_limitation": "first texture pass only; original blend, wibble, environment and multi-pass effects remain metadata"}}
+        if first["flags"] & (1 << 6):
+            entry["alphaMode"] = "BLEND"
+        glb.document["materials"].append(entry)
     primitives = []
     used_vertices = 0
     triangle_count = 0
@@ -153,6 +200,10 @@ def build(rig, mesh, animation=None):
             flat = triangles(item["lod_strips"][0])
             if not flat:
                 continue
+            material_index = material_ids[item["material_id"]]
+            if ("baseColorTexture" in glb.document["materials"][material_index]["pbrMetallicRoughness"] and
+                    sector["uv_set_count"] == 0):
+                raise ValueError("Textured character primitive has no source UV set")
             used = sorted(set(flat))
             if used_vertices + len(used) > MAX_VERTICES:
                 raise ValueError("Exported character vertex limit exceeded")
@@ -192,7 +243,7 @@ def build(rig, mesh, animation=None):
                 attributes["COLOR_0"] = glb.attribute(rgba, "4f", 5126, "VEC4", target=34962)
             indices = glb.attribute([[mapping[v]] for v in flat], "H", 5123, "SCALAR", target=34963)
             primitives.append({"attributes": attributes, "indices": indices, "mode": 4,
-                "material": material_ids[item["material_id"]], "extras": {"source_sector_id": sector["source_id"],
+                "material": material_index, "extras": {"source_sector_id": sector["source_id"],
                 "source_mesh_index": item["index"], "source_flags": item["source_flags"],
                 "source_lod_index_counts": [len(lod) for lod in item["lod_strips"]]}})
             used_vertices += len(used)
@@ -205,7 +256,10 @@ def build(rig, mesh, animation=None):
                "weight_profile": mesh["weight_profile"], "maximum_preview_weight_adjustment": max_weight_adjustment,
                "preview_weights_normalized": True, "preview_normals_normalized": True,
                "source_axes_preserved": True, "geometry_imported": True, "skin_weights_imported": True,
-               "source_pair_identity_verified": False, "textures_imported": False, "animations_imported": False,
+               "source_pair_identity_verified": False, "textures_imported": texture_dictionary is not None,
+               "texture_count": len(texture_dictionary["textures"]) if texture_dictionary is not None else 0,
+               "texture_material_passes_applied": "first-pass-only" if texture_dictionary is not None else "none",
+               "source_render_effects_applied": False, "animations_imported": False,
                "retail_validated": False, "playable_character_registered": False}
     if animation is not None:
         summary.update(append_animation(glb, rig, animation))
@@ -214,7 +268,7 @@ def build(rig, mesh, animation=None):
     return glb.finish(), summary
 
 
-def import_files(skeleton, skin, output, weight_profile, animation=None, q_table=None, t_table=None):
+def import_files(skeleton, skin, output, weight_profile, animation=None, q_table=None, t_table=None, textures=None):
     skeleton, skin, output = Path(skeleton), Path(skin), Path(output)
     if skeleton.stat().st_size > 12 + 44 * MAX_BONES:
         raise ValueError("Skeleton exceeds the supported SKE v2 profile")
@@ -225,7 +279,13 @@ def import_files(skeleton, skin, output, weight_profile, animation=None, q_table
     if animation is None and (q_table is not None or t_table is not None):
         raise ValueError("Compression tables require --animation")
     clip = read_clip(animation, q_table, t_table) if animation is not None else None
-    glb, summary = build(rig, mesh, clip)
+    texture_dictionary = None
+    if textures is not None:
+        textures = Path(textures)
+        if textures.stat().st_size > MAX_TEXTURE_BYTES:
+            raise ValueError("Texture dictionary exceeds the supported size limit")
+        texture_dictionary = parse_textures(textures.read_bytes())
+    glb, summary = build(rig, mesh, clip, texture_dictionary)
     # Reserve the output directory before writing. Never replace an old import
     # or use a shared temporary directory containing someone else's files.
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -237,6 +297,8 @@ def import_files(skeleton, skin, output, weight_profile, animation=None, q_table
                    "summary": summary, "rig": rig, "mesh": mesh}
         if clip is not None:
             package["animation"] = clip
+        if texture_dictionary is not None:
+            package["textures"] = texture_metadata(texture_dictionary)
         (output / "character.json").write_text(json.dumps(package, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     except BaseException:
         shutil.rmtree(output)
@@ -253,14 +315,16 @@ def main():
     parser.add_argument("--animation", type=Path, help="Optional matching original full skeletal clip")
     parser.add_argument("--q-table", type=Path, help="Local Q48 table if required by the clip")
     parser.add_argument("--t-table", type=Path, help="Local T48 table if required by the clip")
+    parser.add_argument("--textures", type=Path, help="Optional matching original texture dictionary")
     args = parser.parse_args()
     try:
-        package = import_files(args.skeleton, args.skin, args.output, args.weight_profile, args.animation, args.q_table, args.t_table)
+        package = import_files(args.skeleton, args.skin, args.output, args.weight_profile, args.animation, args.q_table, args.t_table, args.textures)
     except (OSError, ValueError) as error:
         parser.exit(1, f"Character import failed: {error}\n")
     print(json.dumps(package["summary"], indent=2))
     print("Local rigged preview:", args.output / "character.glb")
-    print("Untextured rigged preview" + (" with a 60 Hz original clip." if args.animation else " in the neutral pose."))
+    print(("Textured" if args.textures else "Untextured") + " rigged preview" +
+          (" with a 60 Hz original clip." if args.animation else " in the neutral pose."))
     print("Playable character attachment and gameplay animation selection remain pending.")
 
 

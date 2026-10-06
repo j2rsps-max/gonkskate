@@ -110,9 +110,10 @@ should not require that character's original game's movement system.
 - [x] source-derived THUG skin streams, explicit Xbox/PC weights and material/LOD metadata
 - [x] local neutral-pose character package and rigged GLB with real importer/deformation validation
 - [x] original full-clip platform/compressed animation import, authentic sampler and 60 Hz animated GLB validation
+- [x] original THUG texture dictionaries, source unswizzle/decompression checks and first-pass textured GLB validation
 - [x] owner character-format check and diagnostic-only results ZIP
 - [ ] owner retail rig validation and matching mesh/material/animation import
-- [ ] texture dictionaries, authentic shader/material appearance and animation mapping
+- [ ] authentic multipass shader/material appearance and gameplay animation mapping
 - [ ] import user-supplied Tony Hawk character files, covering THPS and later games
 - [ ] include hidden/guest character imports such as Spider-Man when source
       formats and compatible rigs have been verified

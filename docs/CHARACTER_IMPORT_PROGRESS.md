@@ -10,8 +10,9 @@ the inspected **Xbox/DX9 little-endian skin stream layout**. It exports a local
 rigged GLB in the neutral pose, optionally with a matching original skeletal
 animation clip, and preserves original geometry, weight words,
 bone indices, material/texture references, UVs, colors and LOD strips in a local
-character package. Textures and gameplay animation selection remain pending; this does
-not add a playable character to Skate3Recomp.
+character package. A matching original texture dictionary can now provide the
+first material pass in the GLB. Original multipass effects and gameplay animation
+selection remain pending; this does not add a playable character to Skate3Recomp.
 
 ## Owner check
 
@@ -32,8 +33,10 @@ The extension alone does not select the platform or verify the stream layout.
 
 Successful imports create `local-characters/thug-character-TIMESTAMP/` containing
 `character.glb` and `character.json`. Open the GLB in a compatible viewer/editor
-to check body shape, scale and bone placement. It has neutral surfaces and its
-original rig; source textures and shader effects remain pending.
+to check body shape, scale and bone placement. Without `--textures` it has
+neutral surfaces. With a matching dictionary, its first source material pass is
+embedded; original blend modes, UV animation, environment maps and later passes
+remain metadata.
 Return **logs/GonkSkate-character-results-TIMESTAMP.zip**, even on failure.
 The ZIP contains counts, hashes and test diagnostics; character geometry,
 rig matrices, original files and the GLB stay local. Old imports are preserved.
@@ -63,6 +66,19 @@ If a compressed clip reports a missing lookup table, append `--q-table` and/or
 `--t-table` with the matching original local tables. Each contains 256
 four-short entries (2048 bytes); do not substitute guessed defaults. Clips
 whose compressed tracks use no table references need no table files.
+
+To add a matching original THUG texture dictionary, append `--textures`:
+
+```powershell
+.\RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9 --textures "C:\path\to\character.tex.xbx"
+```
+
+The importer currently supports the inspected Xbox/DX9 little-endian dictionary
+layout: swizzled 8-bit paletted, A1R5G5B5 and A8R8G8B8 images plus linear DXT1
+(source codes 1/2) and DXT5 mip chains. A material whose first pass references a
+missing texture, or a textured primitive with no UV set, is rejected. The local
+GLB embeds lossless PNG images. This is first-pass appearance interchange, not
+original THUG shader emulation.
 
 Keep the original files, tables, `character.glb` and `character.json` on your PC.
 Return only the results ZIP. Successful imports preserve all decoded source
@@ -186,6 +202,33 @@ For the optional cloud validator, a reproducible installation is:
 npm install --cache /tmp/gonk-npm-cache --prefix /workspace/tooling/gltf-validator gltf-validator@2.0.0-dev.3.10 --ignore-scripts --no-audit --no-fund
 ```
 
+## Original texture dictionaries
+
+At the same upstream pin, `Code/Gfx/XBox/p_nxtexture.cpp` and
+`Code/Gfx/DX9/p_nxtexture.cpp` define the dictionary and per-mip stream layout.
+`Code/Gfx/DX9/NX/texture.cpp::Unswizzle()` supplies the exact Morton-like address
+mapping; direct and paletted inputs use it while block-compressed inputs remain
+linear. Palette/D3DCOLOR bytes are converted from little-endian BGRA memory order
+to RGBA. Every count, dimension, palette, mip length, duplicate checksum and
+trailing byte is checked before an output directory is retained.
+
+The differential fixture anchors the inspected loader body by source hash and
+executes the exact original unswizzle implementation. Across **24 synthetic
+dictionaries, 60 textures, 120 mips and 3268 decoded pixels**, source offsets,
+raw mip bytes and unswizzled results agree. It does not execute D3D allocation or
+rendering. Six textured GLBs then pass independent Khronos validation with zero
+errors/warnings and actual Godot import. The engine binds every material texture
+and returns every expected RGBA channel exactly.
+
+```bash
+python3 tools/test_thug_texture.py
+python3 tools/test_thug_texture_upstream.py
+python3 tools/test_texture_preview.py --godot /path/to/godot --gltf-validator /path/to/gltf-validator-module
+```
+
+No retail texture dictionary has been validated yet. Textures and derived GLBs
+stay local; the owner result ZIP contains only hashes, counts and diagnostics.
+
 ## Original animation formats and pose math
 
 The same upstream pin supplies the animation reader and sampling behavior:
@@ -255,8 +298,8 @@ python3 tools/test_thug_animation_upstream.py --runner /path/to/wine64
 python3 tools/test_animation_preview.py --godot /path/to/godot --gltf-validator /path/to/gltf-validator-module
 ```
 
-No retail skeleton, clip or complete retail character has been validated here yet.
-Next: validate an owner-supplied rig/mesh/clip, decode its texture dictionary and
-attach the character to the frontend. Spider-Man and
+No retail skeleton, clip, texture dictionary or complete retail character has
+been validated here yet. Next: validate an owner-supplied rig/mesh/clip/texture
+set and attach the character to the frontend. Spider-Man and
 other THPS/Skate guest characters need their particular game/platform formats
 verified before cross-game retargeting or selector support is claimed.

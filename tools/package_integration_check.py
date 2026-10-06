@@ -29,6 +29,7 @@ def main():
         "RUN_CHARACTER_CHECK.cmd","scripts/run-character-check.py","tools/import_thug_skin.py",
         "tools/import_thug_character.py","tools/test_thug_character.py","tools/test_thug_rig.py",
         "tools/import_thug_animation.py","tools/test_thug_animation.py",
+        "tools/import_thug_texture.py","tools/test_thug_texture.py",
         "scripts/setup-skate3-source.py","tools/import_thug_rig.py","tools/stage_skate3_probe.py","tools/skate3_readiness.py",
         "native/thug_adapter/include/gonkskate_thug.h","native/thug_adapter/include/gonkskate_thug_runtime.h",
         "native/thug_adapter/integration/SkateThugRuntime.cmake","native/skate3_adapter/config/upstream.json",
@@ -50,7 +51,9 @@ def main():
         "validation/skin-loader.json":(ROOT/"build/skin-differential/validation.json").read_bytes(),
         "validation/character-preview.json":(ROOT/"build/character-preview-validation/validation.json").read_bytes(),
         "validation/animation-loader.json":(ROOT/"build/animation-differential/validation.json").read_bytes(),
-        "validation/animation-preview.json":(ROOT/"build/animation-preview-validation/validation.json").read_bytes()}
+        "validation/animation-preview.json":(ROOT/"build/animation-preview-validation/validation.json").read_bytes(),
+        "validation/texture-loader.json":(ROOT/"build/texture-differential/validation.json").read_bytes(),
+        "validation/texture-preview.json":(ROOT/"build/texture-preview-validation/validation.json").read_bytes()}
     if json.loads(evidence["validation/rig-loader.json"])["inverse_bind_equivalence"]!="PASS":raise ValueError("Rig differential check missing")
     if json.loads(evidence["validation/frontend-embedding.json"])["relocated_host_contracts"]!="PASS":raise ValueError("Frontend import check missing")
     for name in ("validation/skin-loader.json","validation/character-preview.json"):
@@ -78,11 +81,25 @@ def main():
         animation.get("engine_animation_bake_rate")!=60 or any(row.get("khronos_errors")!=0 or row.get("khronos_warnings")!=0 or
         row.get("actual_animation_playback")!="PASS" for row in animation["fixtures"])):
         raise ValueError("Independent animated playback validation is incomplete")
+    texture_loader=json.loads(evidence["validation/texture-loader.json"])
+    texture_hash={"import_thug_texture.py":hashlib.sha256((ROOT/"tools/import_thug_texture.py").read_bytes()).hexdigest()}
+    if (texture_loader.get("passed") is not True or texture_loader.get("importer_source_sha256")!=texture_hash or
+        texture_loader.get("original_unswizzle_equivalence")!="PASS" or texture_loader.get("source_stream_offsets_and_bytes")!="PASS"):
+        raise ValueError("Original texture differential validation is incomplete")
+    texture=json.loads(evidence["validation/texture-preview.json"])
+    texture_sources={filename:hashlib.sha256((ROOT/"tools"/filename).read_bytes()).hexdigest()
+        for filename in ("import_thug_texture.py","import_thug_character.py","import_thug_skin.py","import_thug_rig.py")}
+    if (texture.get("passed") is not True or texture.get("importer_source_sha256")!=texture_sources or
+        texture.get("khronos_gltf_validator")!="PASS" or len(texture.get("fixtures",[]))!=6 or
+        any(row.get("khronos_errors")!=0 or row.get("khronos_warnings")!=0 or row.get("actual_texture_import")!="PASS" or
+            row.get("material_texture_bound") is not True or row.get("maximum_channel_error")!=0 for row in texture["fixtures"])):
+        raise ValueError("Independent textured preview validation is incomplete")
     for name, fixture in (("validation/character-preview.json","native/character_import/tests/preview_import.gd"),
-                          ("validation/animation-preview.json","native/character_import/tests/animation_import.gd")):
+                          ("validation/animation-preview.json","native/character_import/tests/animation_import.gd"),
+                          ("validation/texture-preview.json","native/character_import/tests/texture_import.gd")):
         if json.loads(evidence[name]).get("engine_fixture_sha256")!=hashlib.sha256((ROOT/fixture).read_bytes()).hexdigest():
             raise ValueError("Engine fixture differs from playback evidence: "+fixture)
-    readme='''# GonkSkate integration development check
+    readme=r'''# GonkSkate integration development check
 
 Extract into a NEW folder. Run RUN_INTEGRATION_CHECK.cmd and return the
 GonkSkate-integration-results ZIP under logs/. Python 3.10+ is required.
@@ -97,12 +114,16 @@ RUN_INTEGRATION_CHECK.cmd "C:\\path\\to\\character.ske.xbx"
 This command imports a rig only; use RUN_CHARACTER_CHECK.cmd for mesh previews.
 The derived rig stays local; results contain diagnostics, not character assets.
 
-NEW: run RUN_CHARACTER_CHECK.cmd for 21 asset-free rig/mesh/animation/export checks.
+NEW: run RUN_CHARACTER_CHECK.cmd for 26 asset-free rig/mesh/texture/animation/export checks.
 For a matching local THUG PC skeleton and skin:
 RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9
 Use --weight-profile xbox for the inspected original Xbox decoder instead.
 This creates local-characters/thug-character-TIMESTAMP/character.glb and JSON.
-The GLB is a rigged, untextured preview. Add a matching original skeletal clip:
+The GLB is a rigged, untextured preview. Add a matching original texture dictionary:
+RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9 --textures "C:\path\to\character.tex.xbx"
+This embeds the first source material pass. DXT1/DXT5 and swizzled 8/16/32-bit
+images are supported; original multipass shader effects remain metadata.
+Add a matching original skeletal clip:
 RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9 --animation "C:\\path\\to\\skater_Push.ska.xbx"
 Select "THUG local clip" in your GLB viewer/editor's animation controls.
 For compressed clips that require lookup tables, supply matching original local
@@ -111,8 +132,8 @@ tables instead of guessing. It rejects unsupported partial/event/camera clips.
 Bone counts must match; source files do not prove the correct rig identity.
 Animation preview uses original samples at 60 Hz with STEP interpolation;
 configure a viewer's animation resampling to retain 60 Hz if it bakes tracks.
-This does not add a playable character. Textures, gameplay animation selection,
-retail appearance and live frontend attachment remain pending.
+This does not add a playable character. Retail texture compatibility, original
+shader effects, gameplay animation selection and live attachment remain pending.
 No game files are needed for the asset-free check.
 Return the GonkSkate-character-results ZIP under logs/; derived assets stay local.
 
@@ -128,6 +149,7 @@ docs/CHARACTER_IMPORT_PROGRESS.md explains the checked skeleton/mesh profiles.
         "retail_assets_included":False,"live_skate_player_control":False,"complete_character_import":False,
         "character_check_entry_point":"RUN_CHARACTER_CHECK.cmd","rigged_neutral_character_preview":True,
         "original_clip_animated_character_preview":True,"character_preview_sample_rate":60,
+        "original_texture_first_pass_preview":True,
         "sha256":{name:hashlib.sha256(data).hexdigest() for name,data in {**source,**binaries,**evidence}.items()}}
     with zipfile.ZipFile(output,"x",zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
         for name,data in {**source,**binaries,**evidence}.items():archive.writestr(prefix+name,data)
