@@ -26,6 +26,8 @@ def main():
         set(validation.get("executable_equivalence",{}))!={"idle","ollie","steer","soak","rail","rail_jump"}):
         raise ValueError("Production runtime validation/provenance is incomplete")
     files=["RUN_INTEGRATION_CHECK.cmd","scripts/run-integration-check.py","scripts/build-skate3-integration.py",
+        "RUN_CHARACTER_CHECK.cmd","scripts/run-character-check.py","tools/import_thug_skin.py",
+        "tools/import_thug_character.py","tools/test_thug_character.py","tools/test_thug_rig.py",
         "scripts/setup-skate3-source.py","tools/import_thug_rig.py","tools/stage_skate3_probe.py","tools/skate3_readiness.py",
         "native/thug_adapter/include/gonkskate_thug.h","native/thug_adapter/include/gonkskate_thug_runtime.h",
         "native/thug_adapter/integration/SkateThugRuntime.cmake","native/skate3_adapter/config/upstream.json",
@@ -43,9 +45,21 @@ def main():
         "gonkskate-thug-runtime.dll","gonkskate-thug-runtime.lib","runtime-client.exe","manifest.json","runtime-validation.json")}
     evidence={"validation/rig-loader.json":(ROOT/"build/rig-differential/validation.json").read_bytes(),
         "validation/frontend-embedding.json":(ROOT/"build/thug-runtime/frontend-embedding-validation.json").read_bytes(),
-        "validation/title-update-staging.json":(ROOT/"build/skate3-title-update-validation.json").read_bytes()}
+        "validation/title-update-staging.json":(ROOT/"build/skate3-title-update-validation.json").read_bytes(),
+        "validation/skin-loader.json":(ROOT/"build/skin-differential/validation.json").read_bytes(),
+        "validation/character-preview.json":(ROOT/"build/character-preview-validation/validation.json").read_bytes()}
     if json.loads(evidence["validation/rig-loader.json"])["inverse_bind_equivalence"]!="PASS":raise ValueError("Rig differential check missing")
     if json.loads(evidence["validation/frontend-embedding.json"])["relocated_host_contracts"]!="PASS":raise ValueError("Frontend import check missing")
+    for name in ("validation/skin-loader.json","validation/character-preview.json"):
+        proof=json.loads(evidence[name])
+        if proof.get("passed") is not True:raise ValueError("Character validation missing: "+name)
+        expected={filename:hashlib.sha256((ROOT/"tools"/filename).read_bytes()).hexdigest()
+            for filename in ("import_thug_rig.py","import_thug_skin.py","import_thug_character.py")}
+        if proof.get("importer_source_sha256")!=expected:raise ValueError("Character evidence differs from packaged source: "+name)
+    preview=json.loads(evidence["validation/character-preview.json"])
+    if (preview.get("khronos_gltf_validator")!="PASS" or len(preview.get("fixtures",[]))!=4 or
+        any(row.get("khronos_errors")!=0 or row.get("khronos_warnings")!=0 for row in preview["fixtures"])):
+        raise ValueError("Independent character GLB validation is incomplete")
     readme='''# GonkSkate integration development check
 
 Extract into a NEW folder. Run RUN_INTEGRATION_CHECK.cmd and return the
@@ -58,19 +72,30 @@ No game files are needed. Keep the v0.8.0 playable package for workshop testing.
 
 Optional local THUG skeleton:
 RUN_INTEGRATION_CHECK.cmd "C:\\path\\to\\character.ske.xbx"
-This imports a rig only. Meshes/animations/playable characters remain pending.
+This command imports a rig only; use RUN_CHARACTER_CHECK.cmd for mesh previews.
 The derived rig stays local; results contain diagnostics, not character assets.
+
+NEW: run RUN_CHARACTER_CHECK.cmd for asset-free mesh/rigged-export checks.
+For a matching local THUG PC skeleton and skin:
+RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9
+Use --weight-profile xbox for the inspected original Xbox decoder instead.
+This creates local-characters/thug-character-TIMESTAMP/character.glb and JSON.
+The GLB is a rigged, untextured neutral-pose preview. It does not add a playable
+character. Textures, animations, retail appearance and live frontend attachment
+remain pending. No game files are needed for the asset-free check.
+Return the GonkSkate-character-results ZIP under logs/; derived assets stay local.
 
 docs/THUG_EMBEDDED_RUNTIME.md contains the source-built Skate frontend helper.
 That build needs local extracted Skate files, matching installed TU3 patches
 (or a TU3 package) and the native build
 toolchain. It links THUG into the frontend, but live player control remains pending.
-docs/CHARACTER_IMPORT_PROGRESS.md explains the verified skeleton profile.
+docs/CHARACTER_IMPORT_PROGRESS.md explains the checked skeleton/mesh profiles.
 '''
     info={"schema_version":1,"source_commit":revision,"scope":"integration development check",
         "entry_point":"RUN_INTEGRATION_CHECK.cmd","runtime_sha256":manifest["executable_sha256"],
         "validation":"Windows native host and MSVC-ABI host under Wine; owner Windows validation pending",
         "retail_assets_included":False,"live_skate_player_control":False,"complete_character_import":False,
+        "character_check_entry_point":"RUN_CHARACTER_CHECK.cmd","rigged_neutral_character_preview":True,
         "sha256":{name:hashlib.sha256(data).hexdigest() for name,data in {**source,**binaries,**evidence}.items()}}
     with zipfile.ZipFile(output,"x",zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
         for name,data in {**source,**binaries,**evidence}.items():archive.writestr(prefix+name,data)

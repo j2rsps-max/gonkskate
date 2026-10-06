@@ -1,12 +1,17 @@
 
 # Changelog
 
-## Unreleased — embedded THUG runtime and character rigs
+## Unreleased — embedded THUG runtime and character geometry
+- Added a source-derived THUG skin stream decoder preserving geometry, material records, packed weights, joint indices, UV/color streams and LOD strips.
+- Kept Xbox/PC weight decoding explicit, paired local rigs/meshes into a rigged neutral-pose GLB, and retained raw data in a local normalized character package.
+- Matched original Windows material/sector readers across 26 synthetic files/390 vertices, plus original weight decoders, dummy-material resolution and strip winding.
+- Validated four GLBs with Khronos (zero errors/warnings) and actual Godot import/posed skinning, including a rotated 63-bone hierarchy; recorded engine UNORM16 rounding limits.
+- Added an asset-free Windows character check, optional local pair import, preservation/failure checks and diagnostic-only result ZIPs. Retail appearance, textures, animation and playable attachment remain pending.
 - Extracted a reusable authentic THUG session shared by the CLI and versioned Windows/Linux runtime libraries, with fixed ticks, original state IDs, per-tick metrics and creator-thread ownership.
 - Contained unsupported dependencies/mapped assertions as host-visible errors, rejected partially failed sessions, and cleared default feeler caches during teardown after interrupted updates.
 - Added production-runtime linkage/ABI handshake to optional Skate source staging, hash-verified binary/header copying and a shared CMake import/copy module.
 - Matched six executable/library scenarios on Linux and Windows under Wine, including the 10,000-tick soak; verified a Windows MSVC-ABI host and relocated Linux CMake host.
-- Added a source-backed THUG SKE v2 rig importer, preserving float32 neutral/inverse-bind semantics; compared 830 synthetic bones against original loader/math code. Meshes, animations and retail rig validation remain pending.
+- Added a source-backed THUG SKE v2 rig importer, preserving float32 neutral/inverse-bind semantics; compared 830 synthetic bones against original loader/math code. Animations and retail rig validation remain pending.
 - Added a Windows development check with replay/hash validation, optional local rig import and diagnostic-only result ZIP, plus a logged local Skate source-build helper.
 - Fixed the staged frontend's remaining hardcoded SDK crypto header path, and added hash-verified reuse of installed TU3 patches without requiring the original STFS package.
 - Added opt-in read-only hooks around ten existing Skate3Recomp presentation wrappers, preserving original imports and renderer/palette ordering.

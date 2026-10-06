@@ -107,9 +107,11 @@ camera and rules. A THPS character on a THUG map with another physics backend
 should not require that character's original game's movement system.
 
 - [x] THUG v2 SKE hierarchy/rest-pose/inverse-bind importer with source differential checks
+- [x] source-derived THUG skin streams, explicit Xbox/PC weights and material/LOD metadata
+- [x] local neutral-pose character package and rigged GLB with real importer/deformation validation
+- [x] owner character-format check and diagnostic-only results ZIP
 - [ ] owner retail rig validation and matching mesh/material/animation import
-- [ ] normalized character package: mesh/materials, skeleton, animation mapping,
-      source-game provenance and importer version
+- [ ] texture dictionaries, authentic shader/material appearance and animation mapping
 - [ ] import user-supplied Tony Hawk character files, covering THPS and later games
 - [ ] include hidden/guest character imports such as Spider-Man when source
       formats and compatible rigs have been verified
@@ -117,7 +119,7 @@ should not require that character's original game's movement system.
 - [ ] support compatible modded Skate 3 character packages after base import works
 - [ ] character selector and per-rig animation retargeting
 
-The implemented rig profile and limits are in [CHARACTER_IMPORT_PROGRESS.md](CHARACTER_IMPORT_PROGRESS.md).
+The implemented rig/mesh profiles and limits are in [CHARACTER_IMPORT_PROGRESS.md](CHARACTER_IMPORT_PROGRESS.md).
 The broader character targets are proposed capabilities. Importers operate
 on local game/mod files; retail character assets are not bundled. Keep the
 procedural mannequin until ground/air, rails and imported world collision are
