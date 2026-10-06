@@ -19,6 +19,7 @@ from import_thug_character import import_files
 from import_thug_skin import WEIGHT_PROFILES
 from test_thug_character import CharacterTests
 from test_thug_rig import RigTests
+from test_thug_animation import AnimationTests
 
 
 def main():
@@ -26,6 +27,9 @@ def main():
     parser.add_argument("skeleton", type=Path, nargs="?")
     parser.add_argument("skin", type=Path, nargs="?")
     parser.add_argument("--weight-profile", choices=WEIGHT_PROFILES)
+    parser.add_argument("--animation", type=Path, help="Matching local THUG full skeletal clip")
+    parser.add_argument("--q-table", type=Path, help="Matching local Q48 compression table if required")
+    parser.add_argument("--t-table", type=Path, help="Matching local T48 compression table if required")
     args = parser.parse_args()
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
     log = ROOT / "logs" / ("character-check-" + stamp)
@@ -37,7 +41,7 @@ def main():
     status = 0
     try:
         output = io.StringIO()
-        suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(case) for case in (RigTests, CharacterTests))
+        suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(case) for case in (RigTests, CharacterTests, AnimationTests))
         result = unittest.TextTestRunner(stream=output, verbosity=2).run(suite)
         (log / "format-tests.txt").write_text(output.getvalue(), encoding="utf-8")
         report["synthetic_format_tests"] = {"passed": result.wasSuccessful(), "tests_run": result.testsRun}
@@ -45,11 +49,13 @@ def main():
             raise RuntimeError("Character format tests failed; see the result ZIP")
         if bool(args.skeleton) != bool(args.skin):
             raise ValueError("Supply both the original skeleton and matching skin, or neither")
+        if not args.skeleton and any(value is not None for value in (args.animation, args.q_table, args.t_table)):
+            raise ValueError("Animation previews require the matching skeleton, skin and weight profile")
         if args.skeleton:
             if not args.weight_profile:
                 raise ValueError("Select --weight-profile dx9 for the inspected PC decoder or xbox for the original Xbox decoder")
             local = ROOT / "local-characters" / ("thug-character-" + stamp)
-            package = import_files(args.skeleton, args.skin, local, args.weight_profile)
+            package = import_files(args.skeleton, args.skin, local, args.weight_profile, args.animation, args.q_table, args.t_table)
             report["local_import"] = "PARSED_LOCAL_RIGGED_PREVIEW"
             report["character"] = {"summary": package["summary"], "preview_sha256": package["preview_sha256"],
                 "rig_source_sha256": package["rig"]["source_sha256"], "skin_source_sha256": package["mesh"]["source_sha256"],
@@ -57,8 +63,16 @@ def main():
                 "source_format": package["mesh"]["source_format"], "upstream_commit": package["rig"]["inspected_upstream_commit"]}
             print("Local untextured character:", local / "character.glb", flush=True)
             print("View it in a GLB-capable viewer. Confirm the body shape, scale and bone placement.", flush=True)
+            if args.animation:
+                report["animations_imported"] = True
+                clip = package["animation"]
+                report["character"]["animation"] = {key: clip[key] for key in ("source_sha256", "source_format", "source_version",
+                    "version_verified", "source_flags", "duration_seconds", "bone_count", "rotation_key_count", "translation_key_count",
+                    "q_table_sha256", "t_table_sha256", "bone_identity_verified", "retail_validated")}
+                print("Select 'THUG local clip' in the viewer's animation controls. Preview uses original 60 Hz samples.", flush=True)
+                print("Bone counts match; the original indexed clip cannot prove that this is the correct character rig.", flush=True)
         else:
-            print("PASS: asset-free skeleton, mesh and rigged-export format checks.", flush=True)
+            print("PASS: asset-free skeleton, mesh, animation and rigged-export format checks.", flush=True)
             print('Optional PC character: RUN_CHARACTER_CHECK.cmd "C:\\path\\to\\character.ske.xbx" "C:\\path\\to\\character.skin.xbx" --weight-profile dx9', flush=True)
         report["passed"] = True
     except Exception as error:

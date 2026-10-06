@@ -13,6 +13,7 @@ import struct
 
 from import_thug_rig import MAX_BONES, parse as parse_rig
 from import_thug_skin import MAX_BYTES, MAX_VERTICES, WEIGHT_PROFILES, parse as parse_skin, triangles
+from import_thug_animation import COMPRESS_TABLE, MAX_BAKED_POSES, f32, read_clip, sample_track
 
 
 class Glb:
@@ -57,7 +58,57 @@ def column_major(matrix):
     return [matrix[row * 4 + col] for col in range(4) for row in range(4)]
 
 
-def build(rig, mesh):
+def unit_quaternion(q):
+    length = math.sqrt(sum(v * v for v in q))
+    if length < 0.5:
+        raise ValueError("Animation produced a degenerate quaternion")
+    return [v / length for v in q]
+
+
+def append_animation(glb, rig, clip):
+    if clip["bone_count"] != rig["bone_count"] or clip["inspected_upstream_commit"] != rig["inspected_upstream_commit"]:
+        raise ValueError("Animation must match the supplied skeleton's bone count and inspected profile")
+    # LINEAR rotation channels in glTF use spherical interpolation. THUG's
+    # FastSlerp is normalized linear interpolation, so bake authentic samples
+    # with STEP interpolation instead of silently changing the source curve.
+    duration = clip["duration_seconds"]
+    times = [f32(index / 60) for index in range(math.ceil(duration * 60)) if f32(index / 60) < duration]
+    times.append(duration)
+    if len(times) * clip["bone_count"] > MAX_BAKED_POSES:
+        raise ValueError("Animation preview exceeds the supported baked pose limit")
+    input_index = glb.attribute([[v] for v in times], "f", 5126, "SCALAR", True)
+    animation = {"name": "THUG local clip", "samplers": [], "channels": [],
+                 "extras": {"source_sha256": clip["source_sha256"], "sample_rate": 60,
+                            "pose_semantics": clip["pose_semantics"], "root_motion_preserved": True,
+                            "preview_interpolation": "STEP", "fractional_time_preview": "holds preceding 60 Hz sample"}}
+    adjustment = 0.0
+    compressed = bool(clip["source_flags"] & COMPRESS_TABLE)
+    for index, (bone, track) in enumerate(zip(rig["bones"], clip["tracks"])):
+        node = glb.document["nodes"][index + 1]
+        del node["matrix"]
+        q = bone["source_quaternion_xyzw"]
+        node["rotation"] = unit_quaternion([-q[0], -q[1], -q[2], q[3]])
+        node["translation"] = [v * 0.0254 for v in bone["source_translation_xyzw_inches"][:3]]
+        rotations, translations = [], []
+        for time in times:
+            q, t = sample_track(track, time, compressed)
+            normalized = unit_quaternion(q)
+            adjustment = max(adjustment, *(abs(a - b) for a, b in zip(q, normalized)))
+            rotations.append([-normalized[0], -normalized[1], -normalized[2], normalized[3]])
+            translations.append([v * 0.0254 for v in t])
+        for path, rows, fmt, kind in (("rotation", rotations, "4f", "VEC4"), ("translation", translations, "3f", "VEC3")):
+            output = glb.attribute(rows, fmt, 5126, kind)
+            animation["channels"].append({"sampler": len(animation["samplers"]), "target": {"node": index + 1, "path": path}})
+            animation["samplers"].append({"input": input_index, "output": output, "interpolation": "STEP"})
+    glb.document["animations"] = [animation]
+    return {"animation_source_format": clip["source_format"], "animation_duration_seconds": duration,
+            "animation_sample_count": len(times), "animation_sample_rate": 60,
+            "animation_preview_interpolation": "STEP", "maximum_preview_quaternion_adjustment": adjustment,
+            "animation_bone_identity_verified": False, "root_motion_preserved": True,
+            "animation_gameplay_mapping": False, "custom_animation_events_applied": False}
+
+
+def build(rig, mesh, animation=None):
     if rig["inspected_upstream_commit"] != mesh["inspected_upstream_commit"]:
         raise ValueError("Skeleton and mesh use different inspected source profiles")
     glb = Glb()
@@ -156,11 +207,14 @@ def build(rig, mesh):
                "source_axes_preserved": True, "geometry_imported": True, "skin_weights_imported": True,
                "source_pair_identity_verified": False, "textures_imported": False, "animations_imported": False,
                "retail_validated": False, "playable_character_registered": False}
+    if animation is not None:
+        summary.update(append_animation(glb, rig, animation))
+        summary["animations_imported"] = True
     glb.document["extras"] = {"gonkskate": summary}
     return glb.finish(), summary
 
 
-def import_files(skeleton, skin, output, weight_profile):
+def import_files(skeleton, skin, output, weight_profile, animation=None, q_table=None, t_table=None):
     skeleton, skin, output = Path(skeleton), Path(skin), Path(output)
     if skeleton.stat().st_size > 12 + 44 * MAX_BONES:
         raise ValueError("Skeleton exceeds the supported SKE v2 profile")
@@ -168,7 +222,10 @@ def import_files(skeleton, skin, output, weight_profile):
         raise ValueError("Skin exceeds the supported size limit")
     rig = parse_rig(skeleton.read_bytes())
     mesh = parse_skin(skin.read_bytes(), weight_profile)
-    glb, summary = build(rig, mesh)
+    if animation is None and (q_table is not None or t_table is not None):
+        raise ValueError("Compression tables require --animation")
+    clip = read_clip(animation, q_table, t_table) if animation is not None else None
+    glb, summary = build(rig, mesh, clip)
     # Reserve the output directory before writing. Never replace an old import
     # or use a shared temporary directory containing someone else's files.
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -178,6 +235,8 @@ def import_files(skeleton, skin, output, weight_profile):
         package = {"schema_version": 1, "kind": "gonkskate-character-package", "importer_version": 1,
                    "preview_file": "character.glb", "preview_sha256": hashlib.sha256(glb).hexdigest(),
                    "summary": summary, "rig": rig, "mesh": mesh}
+        if clip is not None:
+            package["animation"] = clip
         (output / "character.json").write_text(json.dumps(package, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     except BaseException:
         shutil.rmtree(output)
@@ -191,14 +250,18 @@ def main():
     parser.add_argument("skin", type=Path)
     parser.add_argument("--weight-profile", choices=WEIGHT_PROFILES, required=True)
     parser.add_argument("--output", type=Path, required=True, help="New local character directory")
+    parser.add_argument("--animation", type=Path, help="Optional matching original full skeletal clip")
+    parser.add_argument("--q-table", type=Path, help="Local Q48 table if required by the clip")
+    parser.add_argument("--t-table", type=Path, help="Local T48 table if required by the clip")
     args = parser.parse_args()
     try:
-        package = import_files(args.skeleton, args.skin, args.output, args.weight_profile)
+        package = import_files(args.skeleton, args.skin, args.output, args.weight_profile, args.animation, args.q_table, args.t_table)
     except (OSError, ValueError) as error:
         parser.exit(1, f"Character import failed: {error}\n")
     print(json.dumps(package["summary"], indent=2))
     print("Local rigged preview:", args.output / "character.glb")
-    print("Untextured neutral pose; animation and playable character attachment remain pending.")
+    print("Untextured rigged preview" + (" with a 60 Hz original clip." if args.animation else " in the neutral pose."))
+    print("Playable character attachment and gameplay animation selection remain pending.")
 
 
 if __name__ == "__main__":

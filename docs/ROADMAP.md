@@ -109,6 +109,7 @@ should not require that character's original game's movement system.
 - [x] THUG v2 SKE hierarchy/rest-pose/inverse-bind importer with source differential checks
 - [x] source-derived THUG skin streams, explicit Xbox/PC weights and material/LOD metadata
 - [x] local neutral-pose character package and rigged GLB with real importer/deformation validation
+- [x] original full-clip platform/compressed animation import, authentic sampler and 60 Hz animated GLB validation
 - [x] owner character-format check and diagnostic-only results ZIP
 - [ ] owner retail rig validation and matching mesh/material/animation import
 - [ ] texture dictionaries, authentic shader/material appearance and animation mapping

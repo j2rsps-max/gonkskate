@@ -1,7 +1,12 @@
 
 # Changelog
 
-## Unreleased — embedded THUG runtime and character geometry
+## Unreleased — embedded THUG runtime and animated character imports
+- Added bounded original THUG platform/table-compressed skeletal clip readers, optional local Q48/T48 tables and source-faithful float32 pose sampling.
+- Exported original clips on matched local character rigs using 60 Hz STEP channels to preserve THUG's normalized linear rotation curve; source keys and root motion stay local.
+- Matched original loaders/complete samplers across 27 synthetic clips, 4156 keys and 8128 poses, including sign/identity quirks, wide counts and compression branches.
+- Validated five animated GLBs with actual engine playback/weighted deformation and independent Khronos checks (zero errors/warnings). Added optional animation arguments to the Windows character check and kept assets out of diagnostics.
+- Retail clip compatibility, textures, gameplay animation selection and live Skate character attachment remain pending.
 - Added a source-derived THUG skin stream decoder preserving geometry, material records, packed weights, joint indices, UV/color streams and LOD strips.
 - Kept Xbox/PC weight decoding explicit, paired local rigs/meshes into a rigged neutral-pose GLB, and retained raw data in a local normalized character package.
 - Matched original Windows material/sector readers across 26 synthetic files/390 vertices, plus original weight decoders, dummy-material resolution and strip winding.

@@ -98,11 +98,14 @@ source staging links it and checks its ABI at startup. Native library traces
 match the existing executable, including rails and the 10,000-tick run.
 A source-backed THUG character importer now pairs skeleton and skin geometry
 into a local rigged GLB, preserving original weight/material/LOD metadata.
+Matching original full skeletal clips can now animate that preview using
+source-validated THUG sampling and 60 Hz export.
 `RUN_CHARACTER_CHECK.cmd` runs asset-free format checks and optionally imports
 a local matched pair, with diagnostic-only result ZIPs.
 See [runtime checks and frontend build helper](docs/THUG_EMBEDDED_RUNTIME.md)
 and [character import progress](docs/CHARACTER_IMPORT_PROGRESS.md).
-Live Skate player attachment, retail character validation, textures and animations remain pending.
+Live Skate player attachment, retail character validation, textures and gameplay
+animation selection remain pending.
 
 The development source now stages an opt-in presentation probe into pinned
 Skate3Recomp. Ten existing wrappers observe actor poses, animation jobs,
