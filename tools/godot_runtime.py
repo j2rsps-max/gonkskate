@@ -25,4 +25,3 @@ def godot(root):
  executable=cache/('Godot_v4.4.1-stable_win64_console.exe' if sys.platform=='win32' else 'Godot_v4.4.1-stable_linux.x86_64')
  if sys.platform!='win32':executable.chmod(0o755)
  return str(executable)
-
