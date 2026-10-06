@@ -1,42 +1,26 @@
-# GonkSkate Windows downloads
+# GonkSkate Windows checkpoints
 
-Latest: **v0.7.1 — captured-world contact hotfix**.
+[Download v0.8.0 — full Windows package](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-v0.8.0-Windows-Playable-Full-Package.zip)
 
-[Download the full v0.7.1 Windows ZIP](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-v0.7.1-Windows-Playable-Full-Package.zip)
+Close the hub and games. Copy the contents of GonkSkate-v0.8.0 into your existing
+project folder, replacing included files. Saved user settings and local-worlds
+maps stay in place. Keep your older ZIP.
 
-Updating from v0.7.0: close GonkSkate. Copy the CONTENTS of the ZIP's
-GonkSkate-v0.7.1 folder into your existing project folder, replacing included files.
-Your user/hub.json, local-worlds and captures are excluded from the package and
-remain local. Keep the old ZIP. No recapture is needed.
+Open GONKSKATE.cmd → Run milestone check. Then Map library → select an area →
+Map workshop. Add a short test rail or trace a ledge, choose a flat spawn, and
+Save copy and test with THUG. Test the courtyard first, then your saved Skate
+capture. Editing supports mouse/keyboard and controller input, undo and separate
+saved variants. Play adds native landing/grind counters and finite-area fall reset.
+See TEST_NOTES.md for the owner test. Return the newest milestone-results ZIP.
 
-Open GONKSKATE.cmd, run milestone check, then Map library -> select your existing
-Skate area -> Play with THUG. Retest ground/air walls, ledges and holding Y/E near
-troublesome geometry. Back/View or R can recover a stopped native process; Escape
-finishes. Return logs/GonkSkate-milestone-results-*.zip, even after recovery.
+Verified Linux workflow and Windows Godot/native executables under Wine, including
+an editor-created rail through authentic THUG grind/exit/landing and exact replay.
+Owner validated v0.7.1 captured-area ground/air; the new workshop needs owner
+Windows testing. These are normalized-world/native adapter tests. Live THUG
+control of the Skate3Recomp guest remains pending.
 
-This fixes bonk-sound and audited ground-loss/flail/wall-push event traps. Failures
-stay in the results instead of being reported as passed. Four contact/drop cases
-pass with identical Linux/Windows traces; child death, controller/keyboard reset
-and resumed simulation pass on Linux and Windows under Wine. Full native rail/
-ramp/10,000-tick regressions and runtime-world checks pass.
+SHA256: `90f9ca3ceb25986ff5b008bfa5c25bd5e8820bd172cc5e5b7753588e5f8ab2d4`
 
-The owner's first Skate capture imported 5,415 triangles and passed standing
-ollie/landing/replay, then reached these native stops. Its v0.7.1 contact retest
-remains pending. Captured render scenery has generic concrete and no annotated
-rails. Use the courtyard for actual grinds. Live THUG control of Skate's own
-player, original collision/material/rail import and full trick/bail behavior remain
-future work. Read START_HERE.md and docs/V071_HOTFIX.md in the package.
-
-For a fresh installation, extract the full ZIP into a writable folder and open
-GONKSKATE.cmd. Python 3 with Tkinter is required; Godot and native x64 executables
-are included. Keep several GB free for F10 capture. No retail assets are included.
-
-SHA256: `06f89250c7f9992a5aca37f5c924738d1d974144124a9597546091da101695fa`
-
-## Previous packages
-
-- [v0.7.0](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-v0.7.0-Windows-Playable-Full-Package.zip)
-- [v0.6.6](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-v0.6.6-Windows-Playable-Full-Package.zip)
-
-[Source and history on main](https://github.com/j2rsps-max/gonkskate/tree/main).
-Do not merge this binary downloads branch into main.
+Code and tools only. ISO, retail captures and imported worlds stay on your PC.
+Previous v0.6.6, v0.7.0 and v0.7.1 packages are preserved in this branch.
+Source and project history are on [main](https://github.com/j2rsps-max/gonkskate/tree/main).
