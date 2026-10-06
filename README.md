@@ -27,7 +27,7 @@ Source and project history are on [main](https://github.com/j2rsps-max/gonkskate
 
 ## Integration and character development check
 
-[Download the engine/textured-character development check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-5299504.zip) — 1.7 MB, source `5299504`.
+[Download the engine/character development check with file picker](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-f7782c7.zip) — 1.7 MB, source `f7782c7`.
 
 Extract this into a **new folder** and run `RUN_INTEGRATION_CHECK.cmd`. Python
 3.10+ is required. Return `logs/GonkSkate-integration-results-TIMESTAMP.zip`.
@@ -36,8 +36,16 @@ verifies ground/air/rail replay against the existing executable. Keep the
 v0.8.0 package for playable workshop testing.
 
 Run `RUN_CHARACTER_CHECK.cmd` for 26 asset-free skeleton/mesh/texture/animation/export tests.
-It produces `logs/GonkSkate-character-results-TIMESTAMP.zip`. To import a
-matching local THUG PC skeleton and skin:
+It produces `logs/GonkSkate-character-results-TIMESTAMP.zip` and needs no game
+files. Use this check while THUG is not installed or extracted yet.
+
+For real character imports, double-click **RUN_CHARACTER_IMPORT.cmd**. Use
+**Browse** to choose the actual skeleton and matching mesh, select PC/DX9 or
+Xbox, and optionally select textures, animation and compression tables.
+The standard Python installer includes the required Tcl/Tk support.
+
+All `C:\path\...` paths below are **examples**; replace them with existing files
+if using command-line arguments instead of the picker:
 
 ```powershell
 .\RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9
@@ -91,7 +99,7 @@ Read `docs/THUG_EMBEDDED_RUNTIME.md`. The library/MSVC-ABI and native replay
 tests passed under Wine; full retail source-build and live Skate player control
 still need owner-side validation and player/tick/collision investigation.
 
-SHA256: `9dd29190cf12faf8af06e38e868f6d23cb21c2c492cace0a9a277fd8544f0bef`
+SHA256: `de28afa314575e037c45126b3907e27027fe2b2434749f0738e63c0ff10993d5`
 
 The [previous geometry check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-cc1e549.zip)
 and [skeleton-only check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-c390904.zip) are preserved.
