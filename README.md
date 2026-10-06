@@ -27,7 +27,7 @@ Source and project history are on [main](https://github.com/j2rsps-max/gonkskate
 
 ## Integration and character development check
 
-[Download the engine/rig development check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-c390904.zip) — 1.7 MB, source `c390904`.
+[Download the engine/character development check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-cc1e549.zip) — 1.7 MB, source `cc1e549`.
 
 Extract this into a **new folder** and run `RUN_INTEGRATION_CHECK.cmd`. Python
 3.10+ is required. Return `logs/GonkSkate-integration-results-TIMESTAMP.zip`.
@@ -35,9 +35,27 @@ This console check runs authentic THUG through the new embeddable DLL and
 verifies ground/air/rail replay against the existing executable. Keep the
 v0.8.0 package for playable workshop testing.
 
-Optional: pass a local THUG SKE v2 little-endian skeleton to the command to
-start its rig import. Derived rigs stay local; complete character meshes and
-animations remain pending. No retail files are included in the download/results.
+Run `RUN_CHARACTER_CHECK.cmd` for asset-free skeleton/mesh/rigged-export tests.
+It produces `logs/GonkSkate-character-results-TIMESTAMP.zip`. To import a
+matching local THUG PC skeleton and skin:
+
+```powershell
+.\RUN_CHARACTER_CHECK.cmd "C:\path\to\character.ske.xbx" "C:\path\to\character.skin.xbx" --weight-profile dx9
+```
+
+The result is a local rigged, untextured neutral-pose GLB plus original metadata
+under `local-characters/`. Use `--weight-profile xbox` for the inspected original
+Xbox decoder. Extensions alone do not verify compatibility. The importer checks
+joint ranges but cannot establish that two files are the correct asset pair.
+Read `docs/CHARACTER_IMPORT_PROGRESS.md` for supported profiles and viewer checks.
+Textures, animations, retail appearance and playable character attachment remain
+pending. No retail or derived character assets enter the download/results ZIPs.
+
+Original Windows C++ reader fixtures match 26 synthetic files/390 vertices.
+Both weight profiles and strip conversion match upstream. Four rigged GLBs
+pass Khronos validation with zero errors/warnings and actual engine import/posed
+skinning, including a rotated 63-bone hierarchy. Extracted-package format checks,
+Unicode-path local synthetic imports, diagnostics and native replay also pass.
 
 The ZIP also includes a logged Windows source-build helper for linking THUG
 into the Skate frontend, with reuse of hash-verified installed TU3 patches.
@@ -45,4 +63,6 @@ Read `docs/THUG_EMBEDDED_RUNTIME.md`. The library/MSVC-ABI and native replay
 tests passed under Wine; full retail source-build and live Skate player control
 still need owner-side validation and player/tick/collision investigation.
 
-SHA256: `bb4c392dce9483bbfcda13a357fb23105adcc11cb117fec6996c175cd373e0c0`
+SHA256: `2a3bd65be9bd32937cfc6d3018888c8df9e181f9d6c913eb840eb70ce4edbccf`
+
+The [previous skeleton-only check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-c390904.zip) is preserved.
