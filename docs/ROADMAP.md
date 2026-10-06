@@ -54,12 +54,19 @@ milestone is [capturing and skating a local Skate area](V070_MILESTONE.md).
 - [x] validate full controller guest packet encoding against real SDK types
 - [x] local controller lab, game metadata probe and reference-run diagnostics
 - [x] implement host input driver against original SDK InputSystem, with connection status and UI gating
+- [x] stage pinned read-only guest presentation hooks with bounded actor/caller telemetry
+- [x] validate wrapper transparency and conservative trace analysis with Linux/Windows fixtures
+- [ ] run the presentation probe inside a locally source-built retail guest
 - [ ] attach live host input transport to a source-built Skate guest
 - [ ] identify guest player transform addresses/symbols
 - [ ] identify simulation tick / scheduler hook
 - [ ] identify collision-world coupling
 - [ ] add deterministic state tracing
 - [ ] define Skate 3 C ABI adapter
+
+Presentation probe code, source evidence, limits and build/resume instructions
+are in [SKATE3_GUEST_PROBE.md](SKATE3_GUEST_PROBE.md). Its animation/cloth/swap
+events do not establish player ownership or simulation timing.
 
 ## Phase 4 — cross-map proof
 - [ ] normalize one small Skate 3 collision area

@@ -68,7 +68,9 @@ publishing retail-derived worlds or character assets.
 5. Import one authentic Tony Hawk collision area. Broader formats follow these
    working engine/world boundaries rather than delaying their proof.
 
-This decision is recorded; a modified Skate3Recomp gameplay build does not yet
-exist. The owner's successful courtyard run validates the standalone THUG side,
+Development source now stages tested read-only presentation hooks into pinned
+Skate3Recomp; see [the guest probe checkpoint](SKATE3_GUEST_PROBE.md). A full
+source-built retail guest and gameplay switch have not yet been validated.
+The owner's successful courtyard run validates the standalone THUG side,
 not the live guest hooks or retail imports. Current pins and test evidence are
 in SKATE3_DRIVER_INTEGRATION.md, SKATE3_WORLD_IMPORT.md and WINDOWS_VALIDATION.md.

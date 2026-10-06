@@ -90,3 +90,14 @@ The host controller driver now registers with the original SDK InputSystem and
 preserves menu/UI gating, connection status and optional rumble feedback.
 See [driver integration](docs/SKATE3_DRIVER_INTEGRATION.md). Live guest transport,
 Skate simulation hooks and collision-world adaptation remain pending.
+
+## Skate frontend development checkpoint
+
+The development source now stages an opt-in presentation probe into pinned
+Skate3Recomp. Ten existing wrappers observe actor poses, animation jobs,
+view membership and caller addresses while preserving original game calls.
+A bounded recorder and analyzer report losses and ambiguous identities.
+Linux and Windows fixture checks pass; controlled-player ownership and the
+authoritative physics tick still require live-game investigation.
+See [probe evidence, build checks and the next checkpoint](docs/SKATE3_GUEST_PROBE.md).
+The published v0.8.0 ZIP remains the workshop/controller test package.

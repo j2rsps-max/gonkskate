@@ -1,6 +1,14 @@
 
 # Changelog
 
+## Unreleased — Skate frontend observation
+- Added opt-in read-only hooks around ten existing Skate3Recomp presentation wrappers, preserving original imports and renderer/palette ordering.
+- Added guarded double-copy BE pose validation, bounded asynchronous JSONL recording, explicit queue-loss/limit reporting and safe shutdown lifetime.
+- Added conservative trace analysis that keeps controlled-player identity and simulation timing unresolved.
+- Added pinned source-only staging, a reviewable patch/provenance manifest and separate development CMake presets without changing installed games or retail data.
+- Tested real wrapper bodies and actual SDK PPCContext with synthetic imports on Linux/Windows under Wine; native sanitizers, file preservation and Python integrity/staging checks pass.
+- Fixed Windows exclusive trace creation after detecting a runtime that ignored fopen's exclusive flag. Full retail source-build/live guest validation remains pending; v0.8.0 remains the published playable package.
+
 ## v0.8.0
 - Added a visual map workshop for surface-picked rail chains, height offsets, vertex snapping, spawn/facing selection, removal and undo.
 - Added keyboard/mouse and controller workshop navigation and placement; Save/Cancel stay visible at 720p.
