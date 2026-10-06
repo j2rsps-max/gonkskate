@@ -150,9 +150,31 @@ def integration():
     outcome_bad = hub.execute('import', source=bad_source, launch=False)
     assert not outcome_bad['passed']
     assert Path(outcome_bad['bundle']).is_file()
+    # Exercise the real workshop child, saved-library refresh, area acceptance
+    # and outer result export together, with an original geometry fixture.
+    draft = load(ROOT / 'worlds/courtyard.json')
+    draft['rails'] = []
+    draft_source = directory / 'workshop-source.json'
+    save_json(draft_source, draft)
+    original = hub.library.import_map(draft_source)
+    original_hash = hub.library.map_path(original).read_bytes()
+    outcome_edit = hub.execute('workshop', item=original, options={'autotest': True}, launch=False)
+    assert outcome_edit['passed'], outcome_edit
+    selected = hub.library.data['selected_map']
+    variant = next(row for row in hub.library.maps() if row['id'] == selected)
+    assert variant['id'] != original['id'] and variant['rails'] == 1 and variant['last_check']['passed']
+    assert hub.library.map_path(original).read_bytes() == original_hash
+    with zipfile.ZipFile(outcome_edit['bundle']) as archive:
+        for name in archive.namelist():
+            if name.endswith('.zip'):
+                import io
+                with zipfile.ZipFile(io.BytesIO(archive.read(name))) as child:
+                    assert not any('private-' in n for n in child.namelist())
+    safe_diagnostic_bundle(next(Path(outcome_edit['bundle']).parent.glob('GonkSkate-workshop-results-*.zip')))
     report = {'passed': True, 'unit_tests': 9, 'fixture_capture_pipeline': True,
               'version': (ROOT / 'VERSION').read_text().strip(),
               'native_spawn_ollie_landing_replay': True, 'failed_spawn_reported': True,
+              'workshop_saved_copy_pipeline': True,
               'retail_assets_used': False, 'capture_result_zip': outcome['bundle']}
     save_json(ROOT / 'logs/hub-integration-summary.json', report)
     print(json.dumps(report, indent=2))

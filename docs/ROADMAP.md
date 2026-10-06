@@ -64,7 +64,7 @@ milestone is [capturing and skating a local Skate area](V070_MILESTONE.md).
 ## Phase 4 — cross-map proof
 - [ ] normalize one small Skate 3 collision area
 - [x] real THUG physics on source-derived Skate-format geometry fixtures
-- [ ] real THUG physics on a locally captured retail Skate area
+- [x] real THUG physics on a locally captured retail Skate render area (owner validated ground/air)
 - [ ] normalize one THUG collision area
 - [ ] Skate 3 physics on THUG geometry
 - [ ] map + physics selection UI
@@ -130,3 +130,12 @@ wireless Xbox/PlayStation-compatible devices where the host supports them.
 The Skate backend is still a prototype. Preserving analog readings does not
 establish an authentic Skate control adapter. Do not collapse its right stick
 into THUG's directional buttons or infer its input boundary without research.
+
+## Shared-world authoring checkpoint — v0.8.0
+- [x] visual rail-chain and spawn/facing authoring on imported areas
+- [x] separate saved variants, undo, source identity and asset-free diagnostics
+- [x] keyboard/mouse and controller workshop input
+- [x] editor-created rail through real THUG acquisition/grind/exit/landing/replay
+- [x] session counters and native finite-area fall reset
+- [ ] owner workshop grind test on captured retail geometry
+- [ ] original Skate collision and rail metadata extraction

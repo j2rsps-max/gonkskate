@@ -15,7 +15,8 @@ from import_map import convert
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_PREFIXES = ('GonkSkate-playable-results-', 'GonkSkate-skate3-check-results-',
-                   'GonkSkate-skate3-capture-results-', 'GonkSkate-skate3-reference-results-')
+                   'GonkSkate-skate3-capture-results-', 'GonkSkate-skate3-reference-results-',
+                   'GonkSkate-workshop-results-')
 
 
 def stamp():
@@ -84,12 +85,19 @@ class Library:
                 return item
         item = {'id': uuid.uuid4().hex, 'path': str(path.relative_to(self.root)),
                 'name': world.get('name', path.stem),
-                'source': 'Skate capture' if world.get('source_game') == 'skate3-render-capture' else 'Imported geometry',
+                'source': ('Edited ' if world.get('authoring') else '') + ('Skate capture' if world.get('source_game') == 'skate3-render-capture' else 'Imported geometry'),
                 'triangles': len(world['triangles']), 'rails': len(world['rails'])}
         self.data['maps'].append(item)
         self.data['selected_map'] = item['id']
         self.save()
         return item
+
+    def save_variant(self, source, patch):
+        from world_workshop import apply_patch
+        world = apply_patch(load(source), patch)
+        target = self.root / 'local-worlds' / ('workshop-' + uuid.uuid4().hex + '.json')
+        save_json(target, world)
+        return self.register(target)
 
     def record_check(self, item, report):
         if item['id'] == 'courtyard':
@@ -142,6 +150,8 @@ def safe_diagnostic_bundle(path):
                 value = json.loads(source.read(item).decode('utf-8-sig'))
                 if isinstance(value, dict) and isinstance(value.get('triangles'), list):
                     raise ValueError('Diagnostic bundle contains geometry; export blocked')
+                if isinstance(value, dict) and isinstance(value.get('rails'), list):
+                    raise ValueError('Diagnostic bundle contains world annotations; export blocked')
 
 
 class Session:
@@ -261,6 +271,27 @@ class Hub:
                     return item
         return None
 
+    def workshop_result(self, session):
+        for bundle in reversed(session.bundles):
+            if bundle.name.startswith('GonkSkate-workshop-results-'):
+                with zipfile.ZipFile(bundle) as archive:
+                    report = json.loads(archive.read('report.json'))
+                session.report['workshop'] = report
+                if report.get('saved'):
+                    filename = report['world_filename']
+                    if Path(filename).name != filename or not filename.startswith('workshop-') or not filename.endswith('.json'):
+                        raise ValueError('Invalid workshop result filename')
+                    # The child saved settings on disk; refresh rather than
+                    # overwriting its new library entry with the parent's cache.
+                    self.library = Library(self.root)
+                    item = self.library.register(self.root / 'local-worlds' / filename)
+                    session.report['map'] = item.copy()
+                    return item
+                if report.get('cancelled'):
+                    session.report['cancelled'] = True
+                    return None
+        raise ValueError('Workshop did not provide its save/cancel report')
+
     def execute(self, action, *, item=None, source=None, options=None, progress=None, launch=True):
         """All public actions produce a single result ZIP, including failed stages."""
         session = Session(action, self.root, progress)
@@ -268,11 +299,17 @@ class Hub:
         try:
             if action == 'self-test':
                 self.area_check(session, self.library.maps()[0])
+                session.run('workshop-and-authentic-grind', [sys.executable, 'tools/test_workshop.py',
+                            '--integration', '--executable', self.native(), '--output', session.directory / 'workshop'], timeout=240)
+                session.report['workshop_checks'] = json.loads((session.directory / 'workshop/summary.json').read_text(encoding='utf-8'))
                 session.run('wall-and-edge-contacts', [sys.executable, 'tools/test_geometry_contacts.py',
                             '--executable', self.native(), '--output', session.directory / 'contacts'], timeout=180)
                 session.report['contact_checks'] = json.loads((session.directory / 'contacts/summary.json').read_text(encoding='utf-8'))
                 session.run('thug-controller-integration', [sys.executable, 'scripts/run-playable.py',
                             '--world', 'worlds/courtyard.json', '--controller-autotest'], timeout=300)
+                session.run('session-counters-fall-reset-and-recovery', [sys.executable, 'tools/test_client_features.py',
+                            '--executable', self.native(), '--output', session.directory / 'client'], timeout=300)
+                session.report['client_checks'] = json.loads((session.directory / 'client/summary.json').read_text(encoding='utf-8'))
                 session.run('skate-sdk-controller-integration', [sys.executable, 'scripts/run-skate3-check.py',
                             '--autotest'], timeout=300)
             elif action == 'play-skate':
@@ -284,6 +321,8 @@ class Hub:
                 session.run('physical-controller-lab', [sys.executable, 'scripts/run-skate3-check.py'])
             elif action == 'capture':
                 command = [sys.executable, 'scripts/run-skate3-capture.py', '--no-play']
+                if options and 'radius' in options:
+                    command += ['--radius', str(options['radius'])]
                 if source:
                     command += ['--scene', str(source)]
                 else:
@@ -295,6 +334,16 @@ class Hub:
                     session.run('skate-area-capture', command)
                 finally:
                     item = self.capture_result(session)
+            elif action == 'workshop':
+                if item is None:
+                    raise ValueError('Select a map first')
+                command = [sys.executable, 'scripts/run-workshop.py', '--world', self.library.map_path(item)]
+                if options and options.get('autotest'):
+                    command += ['--autotest']
+                session.run('map-workshop', command)
+                item = self.workshop_result(session)
+                if item is not None:
+                    self.area_check(session, item)
             elif action in ['import', 'check', 'play-thug']:
                 if action == 'import':
                     item = self.library.import_map(source, **(options or {}))
@@ -304,7 +353,7 @@ class Hub:
                 self.area_check(session, item)
             else:
                 raise ValueError('Unknown hub action')
-            if launch and action in ['capture', 'import', 'play-thug']:
+            if launch and action in ['capture', 'import', 'play-thug', 'workshop'] and not session.report.get('cancelled'):
                 if item is None:
                     raise ValueError('Capture completed without an imported map')
                 session.run('thug-on-selected-map', [sys.executable, 'scripts/run-playable.py',

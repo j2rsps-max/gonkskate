@@ -40,7 +40,7 @@ Packed archives and proprietary game/mod formats currently have no decoder.
 | Source | Current support | Next prerequisite |
 | --- | --- | --- |
 | Neutral geometry | Triangulated OBJ and normalized world JSON | Visual materials and richer metadata; glTF/FBX require separate implementation |
-| Skate 3 | Native render-capture importer, source-derived fixtures | Owner retail capture, then original collision/rail research |
+| Skate 3 | Native render-capture importer, source-derived fixtures | Owner ground/air capture validated; original collision/rail research next |
 | Tony Hawk games | No native level/archive importer yet | One THUG level collision import, then identify differences between games/platforms |
 | THUG Pro maps/mods | No package decoder yet | Inspect actual mod files and THUG2-derived extensions; do not assume every THUG format matches |
 | Skate 1/2 or Skate 3 mods | No general package decoder yet | Inspect representative files and supported source exports |
@@ -56,8 +56,9 @@ publishing retail-derived worlds or character assets.
 
 ## Next integration checks
 
-1. Verify the owner's installed Skate3Recomp version and a real scenery capture.
-   Use the working THUG regression harness to validate that imported area.
+1. Retail scenery capture and real THUG ground/air have owner validation.
+   Test workshop-authored rails on the same local world; continue original
+   collision/rail research. This remains adapter verification tooling.
 2. Prepare source-built Skate integration against pinned upstream. Preserve the
    original Skate controller/gameplay path as the default.
 3. Identify and trace the guest player transform, physics update/scheduler and

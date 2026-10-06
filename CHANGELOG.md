@@ -1,6 +1,16 @@
 
 # Changelog
 
+## v0.8.0
+- Added a visual map workshop for surface-picked rail chains, height offsets, vertex snapping, spawn/facing selection, removal and undo.
+- Added keyboard/mouse and controller workshop navigation and placement; Save/Cancel stay visible at 720p.
+- Saved edits as separate local library copies, verified against the parent world's identity; source geometry and provenance remain intact.
+- Connected workshop saves to real THUG spawn/ollie/landing/replay acceptance and immediate play, with one asset-free results ZIP.
+- Proved an editor-created rail reaches original THUG RAIL physics for 20 ticks, exits, lands and replays identically on Linux and Windows executables under Wine.
+- Added native-state landing/grind/rail-time counters and session metrics; finite-world falls request the authentic reset path without false landings.
+- Added remembered 25/50/100 m capture-radius selection and restricted result exports to the current session's declared trace segments.
+- Recorded the owner's successful v0.7.1 retail capture and 1,308-frame interactive session. Live THUG control of the Skate guest remains pending.
+
 ## v0.7.1
 - Fixed a bonk-sound trap and added explicit, instrumented handling of flail, GroundGone and ground wall-push events while preserving original core collision response and Update ordering.
 - Kept unaudited events fail-fast, adding their checksum and accumulated dependency counters to failure diagnostics.

@@ -1,5 +1,25 @@
 # First owner Windows validation — 2026-10-05
 
+## Owner v0.7.1 capture and play
+
+The next owner capture imported 857 render triangles at a 25 m radius. The
+native world SHA256 was
+`0e348029617b5a5f5305a37b0fa12a38cc81ff7ef7fd473da449551111cdb91f`.
+The standing-ollie check passed again: 180 fixed ticks, 63.1982002 inch apex,
+landing at frame 83 and exact replay.
+
+Interactive play completed 1,308 native ticks: 982 ground, 326 air, 12 landing
+flags, ten ollie events, three GroundGone events and one reset. Grind input was
+held in 116 ticks, but the capture had zero rails and never entered RAIL. The
+session-health report recorded no failures/recoveries; both capture and play
+stages exited successfully. This is a different area from the earlier 5,415-face
+capture, so it does not prove every earlier wall contact was retested.
+
+The supplied ZIPs contain counts, identity and input/state traces, not retail
+geometry. The v0.8.0 workshop and new controller authoring still require an owner
+Windows test; Windows Godot and native executables have been exercised under Wine
+using original synthetic geometry, including an editor-authored grind.
+
 ## First owner Skate capture — 2026-10-06
 
 The v0.7.0 F10 capture/import workflow completed on the owner's PC and produced
@@ -14,7 +34,7 @@ Two interactive sessions stopped at native frames 604 and 569: an unidentified
 self-event and an unimplemented bonk-sound call. The old window/launcher reported
 exit 0 despite these stops. The captured world had zero rails, and those session
 traces did not enter RAIL. v0.7.1 fixes the audited contact/event paths, failure
-reporting and reset recovery; the same captured area's retest is still pending.
+reporting and reset recovery. The later successful run used another area.
 See [hotfix notes](V071_HOTFIX.md). The result ZIPs contain identity/trace data,
 not the captured world, so retail geometry has not been replayed in the cloud.
 

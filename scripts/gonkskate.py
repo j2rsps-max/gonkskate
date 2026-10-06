@@ -59,6 +59,7 @@ def gui(hub, smoke_test=False):
     status = tk.StringVar(value='Ready. Start with Run milestone check, then capture a Skate area.')
     skate_path = tk.StringVar(value=hub.library.data.get('skate_executable') or 'Skate3Recomp has not been linked yet')
     map_detail = tk.StringVar()
+    capture_radius = tk.StringVar(value=f'{float(hub.library.data.get("capture_radius", 25)):g}')
     result_text = tk.Text(results, wrap='word', background='#101923', foreground='#e8eef5',
                           insertbackground='white', font=('Consolas', 10), borderwidth=0)
 
@@ -125,7 +126,7 @@ def gui(hub, smoke_test=False):
                 else:
                     state['busy'] = False
                     for control in controls:
-                        control.configure(state='normal')
+                        control.configure(state='readonly' if isinstance(control, ttk.Combobox) else 'normal')
                     state['last_bundle'] = value['bundle']
                     refresh()
                     write(('PASSED. ' if value['passed'] else 'FAILED. ' + str(value['error']) + '\n') +
@@ -166,6 +167,9 @@ def gui(hub, smoke_test=False):
             link()
 
     def capture():
+        radius = float(capture_radius.get())
+        hub.library.data['capture_radius'] = radius
+        hub.library.save()
         if not hub.library.data.get('skate_executable'):
             link()
             if not hub.library.data.get('skate_executable'):
@@ -177,7 +181,7 @@ def gui(hub, smoke_test=False):
             '3. Quit Skate normally.\n\n'
             'GonkSkate checks spawn, ollie and landing, then opens the captured area with THUG physics.\n'
             'Keep several GB free. Captures and game files stay on your PC.')
-        start('capture')
+        start('capture', options={'radius': radius})
 
     def import_map():
         source = filedialog.askopenfilename(title='Import local map geometry', filetypes=[
@@ -243,10 +247,16 @@ def gui(hub, smoke_test=False):
     ttk.Label(play, text='3. Try THUG on a Skate area', font=(font_family, 15, 'bold')).pack(anchor='w')
     ttk.Label(play, text='Capture visible scenery, verify a flat spawn, then skate it with the THUG controller profile.\n'
               'This opens the THUG test window. Live THUG control of Skate’s own player is still pending.').pack(anchor='w', pady=(5, 10))
-    button(play, 'Capture Skate area and test', capture).pack(anchor='w')
+    row = ttk.Frame(play)
+    row.pack(anchor='w')
+    button(row, 'Capture Skate area and test', capture).pack(side='left', padx=(0,10))
+    ttk.Label(row, text='Radius (m)').pack(side='left', padx=(0,6))
+    radius_box = ttk.Combobox(row, textvariable=capture_radius, values=['25','50','100'], width=5, state='readonly')
+    radius_box.pack(side='left')
+    controls.append(radius_box)
 
     ttk.Label(maps, text='Local map library', font=(font_family, 17, 'bold')).pack(anchor='w')
-    ttk.Label(maps, text='Select a saved area. Imported geometry stays local; captured scenery has generic concrete collision.').pack(anchor='w', pady=8)
+    ttk.Label(maps, text='Select an area, then add rails and choose a spawn in Map workshop. Geometry stays local.').pack(anchor='w', pady=8)
     map_list = tk.Listbox(maps, background='#101923', foreground='#e8eef5', selectbackground='#466989',
                           font=(font_family, 12), height=9, exportselection=False)
     map_list.pack(fill='both', expand=True)
@@ -256,8 +266,11 @@ def gui(hub, smoke_test=False):
     row.pack(anchor='w')
     for title, command in [('Play with THUG', lambda: selected_action('play-thug')),
                             ('Check map', lambda: selected_action('check')), ('Import map', import_map),
-                            ('Adjust spawn', set_spawn)]:
+                            ('Map workshop', lambda: selected_action('workshop'))]:
         button(row, title, command).pack(side='left', padx=(0, 8))
+    row = ttk.Frame(maps)
+    row.pack(anchor='w', pady=(8,0))
+    button(row, 'Adjust spawn coordinates', set_spawn).pack(side='left')
 
     ttk.Label(results, text='One ZIP to return after each test', font=(font_family, 17, 'bold')).pack(anchor='w')
     ttk.Label(results, text='Results include checks and traces. ISO files, captures and imported geometry stay local.').pack(anchor='w', pady=8)

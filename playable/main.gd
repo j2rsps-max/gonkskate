@@ -1,13 +1,14 @@
 extends Node3D
 # Presentation and input only. The separate THUG process owns every motion step.
 const INCH_TO_METER := 0.0254
+const WorldView = preload("res://world_view.gd")
 var process: Dictionary = {}
 var stream: FileAccess
 var trace: FileAccess
 var skater := Node3D.new()
 var body := Node3D.new()
 var camera := Camera3D.new()
-var floor_mesh := MeshInstance3D.new()
+var floor_mesh: MeshInstance3D
 var hud := Label.new()
 var status := Label.new()
 var frame := 0
@@ -32,6 +33,13 @@ var spawn_y := 0.0
 var recoveries := 0
 var session_failures: Array = []
 var retired_error_pipes: Array[FileAccess] = []
+var lowest_surface := 0.0
+var previous_state := -1
+var previous_position := Vector3.ZERO
+var pending_auto_reset := false
+var metrics := {"frames":0,"landings":0,"rail_entries":0,"rail_frames":0,"resets":0,
+	"automatic_fall_resets":0,"max_speed_kmh":0.0,"travel_meters":0.0,
+	"ground_frames":0,"air_frames":0}
 const CONTROLS := "W / ↑ push     A D / ← → steer     S / ↓ brake\nHold Space to crouch; release to ollie. E holds grind. R resets.\nEsc quits.\nController: X push, A ollie, Y grind. Start pauses; Back resets. Right stick looks."
 
 func mesh(parent: Node3D, shape: Mesh, color: Color, at: Vector3) -> MeshInstance3D:
@@ -63,6 +71,10 @@ func _ready() -> void:
 		return
 	area = parsed_world
 	spawn_y = float(area.get("spawn",[0,0,0])[1])
+	lowest_surface = spawn_y
+	for triangle in area["triangles"]:
+		for v in triangle["vertices"]:
+			lowest_surface = minf(lowest_surface,v[1])
 	add_child(skater)
 	skater.add_child(body)
 	box(skater, Vector3(0.23,0.035,0.81), Vector3(0,0.06,0), Color("ffb546"))
@@ -83,62 +95,9 @@ func _ready() -> void:
 	head.radius = 0.13
 	head.height = 0.26
 	mesh(body, head, Color("bd8e73"), Vector3(0,1.59,0))
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(400,400)
-	floor_mesh.mesh = plane
-	var shader := Shader.new()
-	shader.code = "shader_type spatial; varying vec3 world; void vertex(){world=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;} void fragment(){vec2 d=abs(fract(world.xz/5.0+0.5)-0.5); float line=1.0-step(0.008,min(d.x,d.y)); float checker=mod(floor(world.x/5.0)+floor(world.z/5.0),2.0); ALBEDO=mix(vec3(0.22+checker*0.025),vec3(0.45,0.49,0.51),line); ROUGHNESS=0.95;}"
-	var floor_material := ShaderMaterial.new()
-	floor_material.shader = shader
-	floor_mesh.material_override = floor_material
-	add_child(floor_mesh)
-	floor_mesh.visible = area["floor"]
-	var vertices := PackedVector3Array()
-	var normals := PackedVector3Array()
-	for triangle in area["triangles"]:
-		var v: Array = triangle["vertices"]
-		var a := Vector3(v[0][0],v[0][1],v[0][2])*INCH_TO_METER
-		var b := Vector3(v[1][0],v[1][1],v[1][2])*INCH_TO_METER
-		var c := Vector3(v[2][0],v[2][1],v[2][2])*INCH_TO_METER
-		var n := (b-a).cross(c-a).normalized()
-		# Godot's front-face winding is clockwise; physics normals remain explicit.
-		vertices.append_array(PackedVector3Array([a,c,b]))
-		normals.append_array(PackedVector3Array([n,n,n]))
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	arrays[Mesh.ARRAY_NORMAL] = normals
-	var ramp := ArrayMesh.new()
-	if not vertices.is_empty():
-		ramp.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-		var geometry := mesh(self,ramp,Color("9ca89b"),Vector3.ZERO)
-		# Shared world-space grid helps judge movement on untextured imports.
-		geometry.material_override = floor_material
-	for rail in area["rails"]:
-		for i in range(rail["points"].size()-1):
-			var start: Array = rail["points"][i]
-			var end: Array = rail["points"][i+1]
-			var a := Vector3(start[0],start[1],start[2])*INCH_TO_METER
-			var b := Vector3(end[0],end[1],end[2])*INCH_TO_METER
-			var bar := box(self,Vector3(0.06,0.06,a.distance_to(b)),(a+b)/2,Color("f4bf60"))
-			bar.basis = Basis.looking_at(a-b)
-		for point_array in rail["points"]:
-			var point := Vector3(point_array[0],point_array[1],point_array[2])*INCH_TO_METER
-			if point.y > 0:
-				box(self,Vector3(0.04,point.y,0.04),Vector3(point.x,point.y/2,point.z),Color("8a969e"))
-	var light := DirectionalLight3D.new()
-	light.rotation_degrees = Vector3(-45,-30,0)
-	light.light_energy = 1.5
-	light.shadow_enabled = true
-	add_child(light)
-	var env := WorldEnvironment.new()
-	env.environment = Environment.new()
-	env.environment.background_mode = Environment.BG_COLOR
-	env.environment.background_color = Color("7792ac")
-	env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.environment.ambient_light_color = Color("d2e3f4")
-	env.environment.ambient_light_energy = 0.55
-	add_child(env)
+	floor_mesh = WorldView.build(self,area)
+	WorldView.rails(self,area["rails"])
+	WorldView.lighting(self)
 	camera.position = Vector3(0,3.4,-6)
 	camera.current = true
 	camera.far = 450
@@ -148,16 +107,19 @@ func _ready() -> void:
 	add_child(layer)
 	var panel := Panel.new()
 	panel.position = Vector2(22,20)
-	panel.size = Vector2(625,190)
+	panel.size = Vector2(700,250)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color("263746")
+	panel.add_theme_stylebox_override("panel",panel_style)
 	layer.add_child(panel)
 	hud.position = Vector2(38,32)
 	hud.add_theme_font_size_override("font_size",22)
 	layer.add_child(hud)
-	status.position = Vector2(38,110)
+	status.position = Vector2(38,140)
 	status.add_theme_font_size_override("font_size",15)
 	status.text = CONTROLS
 	if area["rails"].is_empty():
-		status.text += "\nThis area has no grind rails. Use the courtyard to test grinding."
+		status.text += "\nNo rail annotations yet. Add them in Map library → Map workshop."
 	layer.add_child(status)
 	start_native()
 
@@ -166,6 +128,8 @@ func start_native() -> void:
 	failed = false
 	paused = false
 	wants_reset = false
+	previous_state = -1
+	pending_auto_reset = false
 	var logs := ProjectSettings.globalize_path("res://../logs")
 	DirAccess.make_dir_recursive_absolute(logs)
 	trace_path = logs.path_join("playable-%s-%d-segment%d.csv" % [Time.get_datetime_string_from_system().replace(":","-"),OS.get_process_id(),recoveries])
@@ -272,8 +236,11 @@ func _physics_process(delta: float) -> void:
 	var raw_rs: Vector2 = snapshot["right_stick_raw"]
 	controller_trace.store_line(JSON.stringify({"frame":frame,"device":snapshot["device"],"buttons":snapshot["buttons"],"left_stick":[ls.x,ls.y],"right_stick":[rs.x,rs.y],"left_stick_raw":[raw_ls.x,raw_ls.y],"right_stick_raw":[raw_rs.x,raw_rs.y],"left_trigger":snapshot["left_trigger"],"right_trigger":snapshot["right_trigger"]}))
 	controller_trace.flush()
-	stream.store_line("%d %d %d %d %d %d %d" % [int(push),int(crouch),int(left),int(right),int(brake),int(grind),int(wants_reset)])
+	var reset_this_tick := wants_reset
+	var auto_reset_this_tick := reset_this_tick and pending_auto_reset
+	stream.store_line("%d %d %d %d %d %d %d" % [int(push),int(crouch),int(left),int(right),int(brake),int(grind),int(reset_this_tick)])
 	wants_reset = false
+	pending_auto_reset = false
 	stream.flush()
 	var line := stream.get_line()
 	var fields := line.split(",")
@@ -284,6 +251,26 @@ func _physics_process(delta: float) -> void:
 	trace.store_line(line)
 	trace.flush()
 	var position_inches := Vector3(float(fields[6]),float(fields[7]),float(fields[8]))
+	var state := int(fields[15])
+	var velocity := Vector3(float(fields[9]),float(fields[10]),float(fields[11]))
+	metrics["frames"] += 1
+	metrics["landings"] += int(fields[18])
+	metrics["rail_frames"] += int(state==4)
+	metrics["rail_entries"] += int(state==4 and previous_state!=4)
+	metrics["ground_frames"] += int(state==0)
+	metrics["air_frames"] += int(state==1)
+	metrics["resets"] += int(reset_this_tick)
+	metrics["automatic_fall_resets"] += int(auto_reset_this_tick)
+	metrics["max_speed_kmh"] = maxf(metrics["max_speed_kmh"],velocity.length()*INCH_TO_METER*3.6)
+	if previous_state>=0 and not reset_this_tick:
+		metrics["travel_meters"] += position_inches.distance_to(previous_position)*INCH_TO_METER
+	previous_position = position_inches
+	previous_state = state
+	if not area["floor"] and position_inches.y<lowest_surface-600 and not autotest:
+		# Ask the original core's Reset path on the next tick. Do not teleport
+		# the presentation independently or add a fabricated landing.
+		wants_reset = true
+		pending_auto_reset = true
 	skater.position = position_inches*INCH_TO_METER
 	apex = maxf(apex,position_inches.y-spawn_y)
 	landings += int(fields[18])
@@ -297,10 +284,10 @@ func _physics_process(delta: float) -> void:
 	camera_yaw += -rs.x*delta*1.8
 	camera_pitch = clampf(camera_pitch-rs.y*delta*1.2,-0.4,0.7)
 	var camera_back := (-forward).rotated(Vector3.UP,camera_yaw)
-	camera.position = camera.position.lerp(skater.position+camera_back*6+Vector3.UP*(3.4+camera_pitch*3),1-exp(-6*delta))
+	var camera_target := skater.position+camera_back*6+Vector3.UP*(3.4+camera_pitch*3)
+	camera.position = camera_target if reset_this_tick or frame==0 else camera.position.lerp(camera_target,1-exp(-6*delta))
 	camera.look_at(skater.position+Vector3.UP*0.95)
-	var velocity := Vector3(float(fields[9]),float(fields[10]),float(fields[11]))
-	hud.text = "GONKSKATE  /  %s\nTHUG  ·  %s   %.1f km/h   frame %d\n" % [area.get("name","Test area"),"RAIL" if int(fields[15])==4 else ("AIR" if int(fields[15])==1 else "GROUND"),velocity.length()*INCH_TO_METER*3.6,frame]
+	hud.text = "GONKSKATE  /  %s\nTHUG  ·  %s   %.1f km/h   frame %d\nLandings %d   Grinds %d   Rail time %.1f s" % [area.get("name","Test area"),"RAIL" if state==4 else ("AIR" if state==1 else "GROUND"),velocity.length()*INCH_TO_METER*3.6,frame,metrics["landings"],metrics["rail_entries"],metrics["rail_frames"]/60.0]
 	frame += 1
 	if frame==185 and "--screenshot" in OS.get_cmdline_user_args():
 		capture_preview()
@@ -373,5 +360,5 @@ func _exit_tree() -> void:
 	if not result_path.is_empty():
 		var result := FileAccess.open(result_path,FileAccess.WRITE)
 		if result != null:
-			result.store_string(JSON.stringify({"failed":not session_failures.is_empty(),"failures":session_failures,"recoveries":recoveries,"last_segment_frames":frame}))
+			result.store_string(JSON.stringify({"failed":not session_failures.is_empty(),"failures":session_failures,"recoveries":recoveries,"last_segment_frames":frame,"metrics":metrics}))
 			result.close()

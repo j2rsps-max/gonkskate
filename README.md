@@ -1,4 +1,4 @@
-# GonkSkate v0.7.1
+# GonkSkate v0.8.0
 
 Experimental host/runtime research project for loading skating gameplay systems
 independently from map origin.
@@ -10,11 +10,14 @@ provides the prebuilt Windows ZIP through GitHub. See the
 **Open `GONKSKATE.cmd` from the full Windows package.** The hub saves your Skate
 installation, keeps a local map library, checks imported areas using real THUG,
 and collects each action into one results ZIP. Follow [START_HERE.md](START_HERE.md)
-for the capture milestone and [release notes](docs/V070_MILESTONE.md) for verified scope.
+for the capture/workshop milestone and verified scope.
 
-v0.7.1 fixes native stops reached by the owner's first real Skate capture: wall
-bonks, wall-push notifications and leaving a surface. It also adds controller/
-keyboard recovery and correct failure reporting. [Hotfix and retest notes](docs/V071_HOTFIX.md).
+v0.8.0 adds a visual map workshop: place rail chains, choose spawn and facing,
+undo/remove edits, and save a separate library copy for real THUG testing.
+Keyboard/mouse and controller authoring are supported. Play now shows native
+landing/grind counters, resets after falling below a finite area, and records
+session metrics. Capture radius can be selected in the hub.
+[Release and test notes](docs/V080_WORKSHOP.md).
 
 ## Current project rule
 
@@ -40,8 +43,9 @@ The runtime loads worlds without rebuilding. Select the original courtyard in
 the hub's map library, or **Capture Skate area and test** to import local Skate
 scenery and open it with authentic THUG physics after an automatic spawn/ollie/landing check.
 Read [capture and import instructions](docs/SKATE3_WORLD_IMPORT.md).
-The owner's first retail capture imported 5,415 triangles and passed standing
-ollie/landing/replay; contact issues found during play are addressed in v0.7.1.
+The latest owner v0.7.1 capture imported 857 triangles, passed standing
+ollie/landing/replay, and completed 1,308 interactive ticks with 12 landings and
+no native stops. Captures start without rails; workshop annotations enable grinds.
 This uses visible triangles with generic concrete, not original Skate collision or gameplay.
 
 ## First playable preview
