@@ -20,6 +20,15 @@ The integration development ZIP includes **RUN_CHARACTER_CHECK.cmd**. With no
 arguments it runs asset-free format/export checks and creates a diagnostic ZIP.
 No native build tools, ISO or Godot install are required; Python 3.10+ is enough.
 
+Owner Windows results received on 2026-10-06 for the `5299504` development
+package confirm **26/26 synthetic checks passed** in both runs. The
+`GonkSkate-character-results-20261006-191638-282253.zip` run completed with
+exit code 0. The `191701-368144` run reached the same passing checks, then failed
+with WinError 3 when given the nonexistent example skeleton path. Both returned
+only `report.json` and `format-tests.txt`; neither attempted a real character
+import. Retail file compatibility, the newer picker on the owner's Windows PC
+and live frontend character attachment remain unverified.
+
 Run it without arguments for the check, including when THUG is not installed yet:
 
 ```powershell
