@@ -54,6 +54,15 @@ For a new Codex conversation, use the root-level
 [CODEX_HANDOFF.md](../CODEX_HANDOFF.md). Local Codex uses `Source` and the local
 game installations; cloud Codex uses the same GitHub repository and asset-free
 checks. The small development package is not the full source checkout.
+The owner's existing Codex project already points at `Z:\Games\GonkSkate`;
+keep it and tell the chat to work from the `Source` child. Follow the
+[local cloning walkthrough](LOCAL_CODEX_SETUP.md).
+
+Owner inventory received on 2026-10-07 completed without errors or limits:
+6,829 files, 635 `.skin`, 812 `.tex`, zero loose `.ske`/`.ska` and 182 archive
+candidates. `Game/Data/pre/skeletons.pre`, animation PREs and `skaterparts.pre`
+are present by filename/size. This confirms the folder scan on Windows; archive
+contents and actual source-format compatibility still need local inspection.
 
 ## Evidence we already have
 

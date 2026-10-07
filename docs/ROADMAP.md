@@ -116,7 +116,8 @@ should not require that character's original game's movement system.
 - [x] owner character-format check and diagnostic-only results ZIP
 - [x] owner Windows execution of all 26 synthetic character-format/export checks
 - [x] metadata-only THUG installation inventory with folder selection and diagnostic ZIP
-- [ ] owner local installed-file inventory and packed-archive identification
+- [x] owner Windows installed-file inventory (6,829 files; loose skins/textures and PRE archive names)
+- [ ] inspect actual PRE contents and implement verified skeleton/clip extraction
 - [ ] owner Windows file-picker run with a matching retail asset set
 - [ ] owner retail rig validation and matching mesh/material/animation import
 - [ ] authentic multipass shader/material appearance and gameplay animation mapping

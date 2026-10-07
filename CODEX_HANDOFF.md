@@ -41,6 +41,10 @@ handoff; the small Integration Check ZIP ships copies for convenience but omits
 most source. Do not try to develop the whole runtime from that subset.
 The clone selects `main` so the large historical binary packages stay in the
 separate download workflow. It preserves the source branch's history.
+The owner confirms the existing Codex project already points at
+`Z:\Games\GonkSkate`; it can stay there. Use the `Source` child as the working
+Git repository. The exact walkthrough is in
+[docs/LOCAL_CODEX_SETUP.md](docs/LOCAL_CODEX_SETUP.md).
 
 If a checkout already exists, inspect `git status`, its remotes and recent commits
 before updating. Preserve local work. Pull clean source with `git pull --ff-only`;
@@ -129,6 +133,16 @@ The next tool is `RUN_THUG_FILE_CHECK.cmd`. It selects a game folder and returns
 filenames, sizes and counts only. It skips GonkSkate packages and links; errors
 and limits produce an incomplete result rather than a claimed successful scan.
 Names are hints, not verified source formats or character pair identities.
+
+The owner has now run that inventory successfully. The returned
+`GonkSkate-thug-files-results-20261007-163554-841393.zip` reports 6,829 files,
+635 `.skin`, 812 `.tex`, no loose `.ske`/`.ska`, 182 archive candidates and no
+scan errors/limits. Relevant actual relative paths are
+`Game/Data/pre/skeletons.pre` (34,380 bytes), `anims.pre` (651,024),
+`netanims.pre` (2,970,968), `unloadableanims.pre` (2,807,884) and
+`skaterparts.pre` (10,338,660). Source formats and archive contents have not
+been read by the cloud agent. The local next task is to inspect the PRE loader
+and actual archive headers, then expose a verified rig/clip for the importer.
 
 The embedded runtime can be linked by source staging into the pinned Skate
 frontend with an ABI startup handshake. The staged input driver and read-only

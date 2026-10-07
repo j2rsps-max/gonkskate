@@ -1,5 +1,15 @@
 # Owner Windows validation
 
+## THUG installation inventory — 2026-10-07
+
+Owner `GonkSkate-thug-files-results-20261007-163554-841393.zip` reports a complete
+metadata scan of 6,829 files in 451 directories: 635 skin names, 812 texture
+names, zero loose skeleton/clip names, 182 archive names and 5,200 other files.
+It records no errors, scan limits or skipped entries and exits 0. The ZIP holds
+only `report.json` and `file-inventory.json`; no asset contents were included.
+`Game/Data/pre/skeletons.pre`, animation archives and `skaterparts.pre` are
+visible by filename/size. Their binary formats and contents are still unverified.
+
 ## Character format checks — 2026-10-06
 
 Two owner result ZIPs from the `5299504` development package each report all

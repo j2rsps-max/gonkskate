@@ -1,5 +1,10 @@
 Continue the existing GonkSkate project as its technical lead. Do not restart it.
 
+In my local project, the root is Z:\Games\GonkSkate. Work from its Source
+subfolder, Z:\Games\GonkSkate\Source, where the Git checkout and handoff files
+live. Keep the existing Codex project at the parent if that is how it is set up.
+In cloud execution, use the actual GitHub checkout instead; Z: is a local path.
+
 Read CODEX_HANDOFF.md and docs/CURRENT_CHECKPOINT.md first, then AGENTS.md if
 present and the referenced documentation/source before changing behavior.
 Treat those files as a dated handoff: verify the current repository and test
@@ -27,6 +32,10 @@ RUN_THUG_FILE_CHECK.cmd or metadata inventory helper as needed. Identify packed
 archives versus loose sources. Verify one matching rig/mesh pair, then its
 textures and original animation; extend the importer only from demonstrated
 source/layout evidence. Do not assume a successful parse proves visual fidelity.
+The first owner inventory already completed: 6,829 files, 635 loose .skin,
+812 .tex, no loose .ske/.ska and archive candidates including
+Game/Data/pre/skeletons.pre and animation PREs. Inspect these actual archives;
+filenames alone do not establish their contents or compatibility.
 
 Continue the main integration work: full local Skate source-build validation,
 controlled-player identity, authoritative tick and collision ownership, then
