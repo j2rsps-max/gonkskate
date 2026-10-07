@@ -27,6 +27,7 @@ def main():
         raise ValueError("Production runtime validation/provenance is incomplete")
     files=["RUN_INTEGRATION_CHECK.cmd","scripts/run-integration-check.py","scripts/build-skate3-integration.py",
         "RUN_CHARACTER_CHECK.cmd","RUN_CHARACTER_IMPORT.cmd","scripts/run-character-check.py",
+        "RUN_THUG_FILE_CHECK.cmd","scripts/run-thug-file-check.py","tools/thug_file_inventory.py",
         "tools/character_file_picker.py","tools/import_thug_skin.py",
         "tools/import_thug_character.py","tools/test_thug_character.py","tools/test_thug_rig.py",
         "tools/import_thug_animation.py","tools/test_thug_animation.py",
@@ -35,7 +36,8 @@ def main():
         "native/thug_adapter/include/gonkskate_thug.h","native/thug_adapter/include/gonkskate_thug_runtime.h",
         "native/thug_adapter/integration/SkateThugRuntime.cmake","native/skate3_adapter/config/upstream.json",
         "docs/THUG_EMBEDDED_RUNTIME.md","docs/CHARACTER_IMPORT_PROGRESS.md","docs/SKATE3_GUEST_PROBE.md",
-        "docs/CURRENT_CHECKPOINT.md","docs/WINDOWS_VALIDATION.md","START_HERE.md","TEST_NOTES.md","VERSION"]
+        "docs/CURRENT_CHECKPOINT.md","docs/WINDOWS_VALIDATION.md","START_HERE.md","TEST_NOTES.md",
+        "CODEX_HANDOFF.md","CODEX_START_PROMPT.txt","VERSION"]
     files += subprocess.check_output(["git","ls-files","native/skate3_probe"],cwd=ROOT,text=True).splitlines()
     revision=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     # Ship committed source so the named revision is an accurate provenance claim.
@@ -109,6 +111,10 @@ This is a console engine check, not a new playable release.
 Read docs/CURRENT_CHECKPOINT.md for verified results, package selection and the
 THUG asset handoff. The owner's 26 synthetic character tests already passed;
 real character files and the live Skate player connection remain unvalidated.
+CODEX_HANDOFF.md and CODEX_START_PROMPT.txt prepare a new local/cloud Codex chat.
+For coding, clone the full repository into Z:\Games\GonkSkate\Source; this ZIP
+is only a portable subset. Keep the existing THUG folder separate from Source,
+Integration (this package's contents) and Playable (v0.8.0 package contents).
 
 Real THUG ground/air/rail now runs from an embeddable DLL. The check verifies
 native contracts and deterministic movement/replay against the prior executable.
@@ -118,6 +124,9 @@ NEW: run RUN_CHARACTER_CHECK.cmd for 26 asset-free rig/mesh/texture/animation/ex
 This needs no game files. If THUG is not installed/extracted yet, use this check.
 
 To import a real character, double-click RUN_CHARACTER_IMPORT.cmd.
+If you do not know which files to select, first run RUN_THUG_FILE_CHECK.cmd and
+browse to the installed THUG folder. Return its GonkSkate-thug-files-results ZIP;
+it lists only filenames/sizes and does not read or copy retail asset contents.
 Use Browse to select the original skeleton and its matching mesh from your
 installed/extracted THUG files. Choose their original platform (PC/DX9 or Xbox).
 Textures, an animation and any needed compression tables are optional fields.
@@ -153,6 +162,7 @@ docs/CHARACTER_IMPORT_PROGRESS.md explains the checked skeleton/mesh profiles.
         "retail_assets_included":False,"live_skate_player_control":False,"complete_character_import":False,
         "character_check_entry_point":"RUN_CHARACTER_CHECK.cmd","rigged_neutral_character_preview":True,
         "character_import_picker_entry_point":"RUN_CHARACTER_IMPORT.cmd",
+        "thug_file_inventory_entry_point":"RUN_THUG_FILE_CHECK.cmd",
         "original_clip_animated_character_preview":True,"character_preview_sample_rate":60,
         "original_texture_first_pass_preview":True,
         "sha256":{name:hashlib.sha256(data).hexdigest() for name,data in {**source,**binaries,**evidence}.items()}}

@@ -8,6 +8,9 @@ provides the prebuilt Windows ZIP through GitHub. See the
 [first owner Windows validation](docs/WINDOWS_VALIDATION.md) for confirmed results.
 The [current checkpoint and THUG handoff](docs/CURRENT_CHECKPOINT.md) summarizes
 the latest verified state, package selection and the next local character test.
+For a new local/cloud Codex conversation, use [CODEX_START_PROMPT.txt](CODEX_START_PROMPT.txt)
+and [CODEX_HANDOFF.md](CODEX_HANDOFF.md). The full Git checkout belongs beside
+the owner's local games; portable test ZIPs are smaller subsets.
 
 **Open `GONKSKATE.cmd` from the full Windows package.** The hub saves your Skate
 installation, keeps a local map library, checks imported areas using real THUG,
@@ -108,6 +111,8 @@ swizzled 8/16/32-bit images and DXT1/DXT5 are decoded and embedded locally.
 a local matched set, with diagnostic-only result ZIPs.
 `RUN_CHARACTER_IMPORT.cmd` opens a file picker for the actual local THUG files;
 run the check without arguments while the game files are unavailable.
+`RUN_THUG_FILE_CHECK.cmd` selects the installed game folder and returns a
+filenames-and-sizes inventory ZIP to identify loose sources or packed archives.
 See [runtime checks and frontend build helper](docs/THUG_EMBEDDED_RUNTIME.md)
 and [character import progress](docs/CHARACTER_IMPORT_PROGRESS.md).
 Live Skate player attachment, retail character validation, original multipass

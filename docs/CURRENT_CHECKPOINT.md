@@ -17,6 +17,44 @@ links both packages and their hashes. Keep old working ZIPs and extract a
 development check into a new folder. The development ZIP does not include
 `GONKSKATE.cmd`, Godot or a new combined-game playable build.
 
+## Owner PC layout and Codex continuation
+
+The owner reports THUG is now installed under **`Z:\Games\GonkSkate`**, inside
+its existing Tony Hawk's Underground subfolder. Its exact child name and file
+layout have not been inspected by the cloud agent. Keep the game in place.
+Use these separate siblings for the project:
+
+```text
+Z:\Games\GonkSkate\
+  existing THUG game folder\
+  Source\        full Git checkout for local Codex development
+  Integration\   contents of the Integration Check package
+  Playable\      contents of the v0.8.0 playable package
+```
+
+Put each package's contents directly in its chosen folder, so its `.cmd` files
+are directly inside `Integration` or `Playable`. Keep earlier working imports
+and logs; do not overwrite a nonempty development folder during a new extraction.
+For an update, use another development folder or retain the previous folder first.
+
+For the first file inventory with this layout:
+
+```powershell
+Set-Location -LiteralPath 'Z:\Games\GonkSkate\Integration'
+.\RUN_THUG_FILE_CHECK.cmd
+```
+
+Browse to the **actual existing THUG subfolder**, then return
+`logs\GonkSkate-thug-files-results-*.zip`. The scan reads names and sizes only,
+skips GonkSkate packages and links, and reports incomplete scans. A filename is
+a format hint, not evidence of a compatible rig/mesh pair.
+
+For a new Codex conversation, use the root-level
+[CODEX_START_PROMPT.txt](../CODEX_START_PROMPT.txt) and
+[CODEX_HANDOFF.md](../CODEX_HANDOFF.md). Local Codex uses `Source` and the local
+game installations; cloud Codex uses the same GitHub repository and asset-free
+checks. The small development package is not the full source checkout.
+
 ## Evidence we already have
 
 | Area | Confirmed result | Remaining boundary |
@@ -38,7 +76,7 @@ Evidence details are in [Windows validation](WINDOWS_VALIDATION.md),
 [embedded runtime](THUG_EMBEDDED_RUNTIME.md) and
 [Skate guest probe](SKATE3_GUEST_PROBE.md).
 
-## Once the THUG files are ready
+## First real THUG import
 
 The current THUG physics tests already run without retail assets. The completed
 THUG installation/extraction supplies local character and map data for the next
@@ -48,7 +86,9 @@ character source accepted by the picker.
 1. Use the installed/extracted game's actual files. The inspected importer
    supports THUG little-endian Xbox/DX9 profiles; another game or platform needs
    separate verification. A `.xbx` suffix alone does not establish compatibility.
-2. In the Integration Check folder, run:
+2. If you do not know which sources to select, run `RUN_THUG_FILE_CHECK.cmd`
+   first and return its metadata-only results ZIP. Otherwise, in the Integration
+   Check folder, run:
 
    ```powershell
    .\RUN_CHARACTER_IMPORT.cmd
@@ -69,7 +109,7 @@ character source accepted by the picker.
    Return the same results ZIP if importing fails.
 
 The asset-free character check already passed on Windows; there is no need to
-repeat it while waiting for THUG. `RUN_INTEGRATION_CHECK.cmd` remains a separate
+repeat it before the asset inventory. `RUN_INTEGRATION_CHECK.cmd` remains a separate
 optional DLL/replay check, requiring no game files.
 
 ## If the files are inside archives
@@ -84,19 +124,8 @@ The character importer currently has no general game-archive extractor. If the
 installation contains only packed data, first identify its actual format rather
 than renaming an archive to `.skin` or selecting an unrelated file.
 
-For a metadata-only inventory, open PowerShell **in the actual installed/extracted
-THUG folder** and run:
-
-```powershell
-Get-ChildItem -LiteralPath . -Recurse -File -ErrorAction Stop |
-    Where-Object { $_.Name -match '\.(ske|skin|tex|ska|pre)(\.[^.]+)?$' } |
-    Select-Object FullName, Length |
-    Export-Csv -LiteralPath "$env:TEMP\GonkSkate-THUG-file-list.csv" -NoTypeInformation -Encoding UTF8
-Write-Host "File list: $env:TEMP\GonkSkate-THUG-file-list.csv"
-```
-
-This lists filenames and byte sizes; it does not copy or decode assets. Share
-the CSV if needed to identify the next extraction step. A zero-match inventory
+Use the folder inventory described above to identify source and archive names.
+It does not copy or decode assets. A zero-match inventory
 does not prove the installation is unsupported; it may use another archive
 format. An incomplete download cannot establish file compatibility.
 

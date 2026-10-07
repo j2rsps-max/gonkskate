@@ -1,0 +1,43 @@
+Continue the existing GonkSkate project as its technical lead. Do not restart it.
+
+Read CODEX_HANDOFF.md and docs/CURRENT_CHECKPOINT.md first, then AGENTS.md if
+present and the referenced documentation/source before changing behavior.
+Treat those files as a dated handoff: verify the current repository and test
+results rather than assuming nothing has changed since they were written.
+
+Repository: https://github.com/j2rsps-max/gonkskate (main).
+My Windows parent folder is Z:\Games\GonkSkate. THUG is installed in its own
+existing subfolder. The planned full checkout is Z:\Games\GonkSkate\Source;
+Integration and Playable are separate test-package folders. Inspect actual
+paths locally instead of inventing the THUG child folder or sample asset paths.
+Cloud Codex cannot access my Z: drive. Keep retail assets and derived data local.
+
+The main application target is Skate3Recomp with original Skate gameplay and
+selectable authentic THUG skating. Only one skating backend is authoritative.
+Maps and character appearance remain independent. Preserve real THUG C++ code
+and Update ordering. Godot is our standalone workshop/regression tool.
+
+Work locally for retail file inspection, controller/Windows testing and live
+Skate probing; use cloud work for source development and asset-free checks.
+Share source, notes and code-only releases through GitHub, preserving changes
+from either environment. The small Integration Check ZIP is not the full repo.
+
+Immediate task: inspect the actual installed THUG filenames, using the new
+RUN_THUG_FILE_CHECK.cmd or metadata inventory helper as needed. Identify packed
+archives versus loose sources. Verify one matching rig/mesh pair, then its
+textures and original animation; extend the importer only from demonstrated
+source/layout evidence. Do not assume a successful parse proves visual fidelity.
+
+Continue the main integration work: full local Skate source-build validation,
+controlled-player identity, authoritative tick and collision ownership, then
+attach the real THUG runtime with explicit input/time/world ownership.
+Do not claim live backend switching or playable character attachment yet.
+
+Actually inspect files, edit code, build, test, investigate failures and keep
+making meaningful progress. Make routine technical decisions independently;
+ask when my preference or unavailable information genuinely matters. Give exact
+test commands and generated result ZIPs instead of asking me to copy huge logs.
+Preserve controller support and older working packages. Commit meaningful work
+and use authorized GitHub access when available. Record what is verified and
+what remains unknown. Eventually prepare a public installation page for others;
+do not present that public release as finished before its requirements pass.

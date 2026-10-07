@@ -115,6 +115,8 @@ should not require that character's original game's movement system.
 - [x] original THUG texture dictionaries, source unswizzle/decompression checks and first-pass textured GLB validation
 - [x] owner character-format check and diagnostic-only results ZIP
 - [x] owner Windows execution of all 26 synthetic character-format/export checks
+- [x] metadata-only THUG installation inventory with folder selection and diagnostic ZIP
+- [ ] owner local installed-file inventory and packed-archive identification
 - [ ] owner Windows file-picker run with a matching retail asset set
 - [ ] owner retail rig validation and matching mesh/material/animation import
 - [ ] authentic multipass shader/material appearance and gameplay animation mapping
@@ -159,3 +161,12 @@ into THUG's directional buttons or infer its input boundary without research.
 - [x] session counters and native finite-area fall reset
 - [ ] owner workshop grind test on captured retail geometry
 - [ ] original Skate collision and rail metadata extraction
+
+## Local/cloud development and public release
+
+- [x] shared GitHub source and code-only Windows checkpoint downloads
+- [x] Codex continuation prompt, detailed handoff and separate local source/game/test folders
+- [ ] owner local source checkout and first retail-file inspection in the new Codex project
+- [ ] source-built retail Skate frontend and live gameplay integration validation
+- [ ] public install page with release downloads, hardware/tool requirements, local asset setup, controls and result collection
+- [ ] clean Windows installation test using the documented public release steps

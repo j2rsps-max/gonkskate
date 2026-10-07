@@ -2,11 +2,16 @@
 
 Read the [current checkpoint and THUG handoff](docs/CURRENT_CHECKPOINT.md) for
 verified results, package selection and the next test once your THUG files are ready.
+For a new Codex project conversation, use [the start prompt](CODEX_START_PROMPT.txt)
+and [the detailed handoff](CODEX_HANDOFF.md). Local and cloud work share the full
+GitHub source checkout; keep it separate from the game and test-package folders.
 
 The **Integration Check** development ZIP uses `RUN_CHARACTER_IMPORT.cmd` to
 browse for actual THUG files. Its no-argument character check already passed all
 26 tests on the owner's Windows PC. It is a separate package from the playable
 workshop below; extract development checks into a new folder.
+If the actual skeleton/mesh paths are unknown, run `RUN_THUG_FILE_CHECK.cmd`
+first and return its metadata-only file inventory ZIP.
 
 ## v0.8.0 playable workshop
 

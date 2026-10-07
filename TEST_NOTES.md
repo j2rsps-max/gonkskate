@@ -6,6 +6,9 @@ already passed all 26 synthetic format checks on Windows. Once actual THUG files
 are available, use `RUN_CHARACTER_IMPORT.cmd` in the development package and
 return its character-results ZIP. Real character imports and live Skate player
 attachment remain pending.
+The owner now reports THUG installed under `Z:\Games\GonkSkate`. Start with
+`RUN_THUG_FILE_CHECK.cmd` and select its actual game subfolder if the source
+filenames are unknown. Return `GonkSkate-thug-files-results-*.zip` under `logs`.
 
 The steps below apply to the separate v0.8.0 playable workshop package.
 

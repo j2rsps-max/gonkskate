@@ -2,6 +2,8 @@
 # Changelog
 
 ## Unreleased — embedded THUG runtime and animated character imports
+- Added a folder-selected THUG installation inventory that records names/sizes without reading asset contents, skips project packages/links, reports incomplete scans and exports diagnostic-only ZIPs.
+- Added a local/cloud Codex continuation prompt and detailed handoff covering the owner's shared Windows layout, full source checkout, current evidence, pending integration gates and future public install documentation.
 - Consolidated package selection, verified Windows results and the THUG asset handoff in a current checkpoint guide; corrected the stale v0.7.1 retest status and clarified the remaining live player/timing/collision boundaries.
 - Confirmed all 26 asset-free character-format checks on the owner's Windows PC; a second run failed only on nonexistent example paths after the same checks passed. Real character imports remain unvalidated.
 - Added a Windows character-import file picker, explicit source-platform selection and clearer missing-file errors; the no-argument character check still works without game files.
