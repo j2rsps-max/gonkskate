@@ -3,6 +3,8 @@
 Main application decision: Skate3Recomp with original Skate gameplay and
 selectable THUG gameplay. See [integration direction](INTEGRATION_DIRECTION.md).
 Keep the standalone courtyard as a regression harness.
+Current status and the next owner test are in
+[CURRENT_CHECKPOINT.md](CURRENT_CHECKPOINT.md).
 
 v0.7.0 adds one owner-facing hub, a persistent map library, authentic imported
 spawn/ollie/landing acceptance, and unified result exports. The immediate owner
@@ -45,7 +47,7 @@ milestone is [capturing and skating a local Skate area](V070_MILESTONE.md).
 - [x] runtime world selection, validated binary transport and indexed collision
 - [x] triangulated OBJ and Skate render-recording importers with original demo/format fixtures
 - [x] unified importer command with explicit format/unit boundaries
-- [x] validate one retail Skate render capture on owner hardware (basic spawn/ollie/landing and movement; contact issues found, v0.7.1 retest pending)
+- [x] validate one retail Skate render capture on owner hardware (v0.7.1: 857 triangles, 1,308 play ticks, 12 landings, no native stops; earlier problematic geometry not replayed)
 - [ ] import one THUG level's collision
 - [ ] run real THUG physics on imported THUG collision
 
@@ -112,6 +114,8 @@ should not require that character's original game's movement system.
 - [x] original full-clip platform/compressed animation import, authentic sampler and 60 Hz animated GLB validation
 - [x] original THUG texture dictionaries, source unswizzle/decompression checks and first-pass textured GLB validation
 - [x] owner character-format check and diagnostic-only results ZIP
+- [x] owner Windows execution of all 26 synthetic character-format/export checks
+- [ ] owner Windows file-picker run with a matching retail asset set
 - [ ] owner retail rig validation and matching mesh/material/animation import
 - [ ] authentic multipass shader/material appearance and gameplay animation mapping
 - [ ] import user-supplied Tony Hawk character files, covering THPS and later games

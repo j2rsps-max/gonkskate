@@ -6,6 +6,8 @@ independently from map origin.
 The [downloads branch](https://github.com/j2rsps-max/gonkskate/tree/downloads)
 provides the prebuilt Windows ZIP through GitHub. See the
 [first owner Windows validation](docs/WINDOWS_VALIDATION.md) for confirmed results.
+The [current checkpoint and THUG handoff](docs/CURRENT_CHECKPOINT.md) summarizes
+the latest verified state, package selection and the next local character test.
 
 **Open `GONKSKATE.cmd` from the full Windows package.** The hub saves your Skate
 installation, keeps a local map library, checks imported areas using real THUG,

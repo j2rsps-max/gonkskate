@@ -1,4 +1,15 @@
-# First owner Windows validation — 2026-10-05
+# Owner Windows validation
+
+## Character format checks — 2026-10-06
+
+Two owner result ZIPs from the `5299504` development package each report all
+26 synthetic rig/mesh/texture/animation/export checks passing. The `191638-282253`
+run completed with exit code 0. The `191701-368144` run completed the same tests,
+then returned exit code 1 for a nonexistent example skeleton path (WinError 3).
+Both contain only `report.json` and `format-tests.txt`. No retail character was
+imported, and the newer file picker has not yet run on the owner's Windows PC.
+
+The [current checkpoint](CURRENT_CHECKPOINT.md) defines the next local asset test.
 
 ## Owner v0.7.1 capture and play
 

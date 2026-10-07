@@ -1,4 +1,15 @@
-# v0.8.0 owner test
+# GonkSkate owner tests
+
+For the next local character-import test, follow the
+[current checkpoint and THUG handoff](docs/CURRENT_CHECKPOINT.md). The owner has
+already passed all 26 synthetic format checks on Windows. Once actual THUG files
+are available, use `RUN_CHARACTER_IMPORT.cmd` in the development package and
+return its character-results ZIP. Real character imports and live Skate player
+attachment remain pending.
+
+The steps below apply to the separate v0.8.0 playable workshop package.
+
+## v0.8.0 workshop test
 
 Update the existing folder as described in [START_HERE.md](START_HERE.md); keep
 your saved map library. Open **GONKSKATE.cmd**.

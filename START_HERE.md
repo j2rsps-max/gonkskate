@@ -1,4 +1,14 @@
-# GonkSkate v0.8.0 — start here
+# GonkSkate — start here
+
+Read the [current checkpoint and THUG handoff](docs/CURRENT_CHECKPOINT.md) for
+verified results, package selection and the next test once your THUG files are ready.
+
+The **Integration Check** development ZIP uses `RUN_CHARACTER_IMPORT.cmd` to
+browse for actual THUG files. Its no-argument character check already passed all
+26 tests on the owner's Windows PC. It is a separate package from the playable
+workshop below; extract development checks into a new folder.
+
+## v0.8.0 playable workshop
 
 Close the hub and games, then copy the **contents** of the new package’s
 `GonkSkate-v0.8.0` folder over your existing GonkSkate folder, replacing included

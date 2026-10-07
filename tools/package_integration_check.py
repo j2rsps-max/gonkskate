@@ -34,7 +34,8 @@ def main():
         "scripts/setup-skate3-source.py","tools/import_thug_rig.py","tools/stage_skate3_probe.py","tools/skate3_readiness.py",
         "native/thug_adapter/include/gonkskate_thug.h","native/thug_adapter/include/gonkskate_thug_runtime.h",
         "native/thug_adapter/integration/SkateThugRuntime.cmake","native/skate3_adapter/config/upstream.json",
-        "docs/THUG_EMBEDDED_RUNTIME.md","docs/CHARACTER_IMPORT_PROGRESS.md","docs/SKATE3_GUEST_PROBE.md","VERSION"]
+        "docs/THUG_EMBEDDED_RUNTIME.md","docs/CHARACTER_IMPORT_PROGRESS.md","docs/SKATE3_GUEST_PROBE.md",
+        "docs/CURRENT_CHECKPOINT.md","docs/WINDOWS_VALIDATION.md","START_HERE.md","TEST_NOTES.md","VERSION"]
     files += subprocess.check_output(["git","ls-files","native/skate3_probe"],cwd=ROOT,text=True).splitlines()
     revision=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     # Ship committed source so the named revision is an accurate provenance claim.
@@ -105,6 +106,9 @@ def main():
 Extract into a NEW folder. Run RUN_INTEGRATION_CHECK.cmd and return the
 GonkSkate-integration-results ZIP under logs/. Python 3.10+ is required.
 This is a console engine check, not a new playable release.
+Read docs/CURRENT_CHECKPOINT.md for verified results, package selection and the
+THUG asset handoff. The owner's 26 synthetic character tests already passed;
+real character files and the live Skate player connection remain unvalidated.
 
 Real THUG ground/air/rail now runs from an embeddable DLL. The check verifies
 native contracts and deterministic movement/replay against the prior executable.
