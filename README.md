@@ -27,13 +27,28 @@ Source and project history are on [main](https://github.com/j2rsps-max/gonkskate
 
 ## Integration and character development check
 
-[Download the engine/character development check with file picker](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-f7782c7.zip) — 1.7 MB, source `f7782c7`.
+[Download the engine/character check with THUG inventory and Codex handoff](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-19f814c.zip) — about 1.8 MB, source `19f814c`.
 
 Extract this into a **new folder** and run `RUN_INTEGRATION_CHECK.cmd`. Python
 3.10+ is required. Return `logs/GonkSkate-integration-results-TIMESTAMP.zip`.
 This console check runs authentic THUG through the new embeddable DLL and
 verifies ground/air/rail replay against the existing executable. Keep the
 v0.8.0 package for playable workshop testing.
+
+The updated checkpoint notes, **CODEX_HANDOFF.md** and **CODEX_START_PROMPT.txt**
+are included. For local/cloud continuation, use the full GitHub checkout as the
+Codex source project; this portable ZIP is only the development-check subset.
+Keep the owner's existing THUG folder under `Z:\Games\GonkSkate` separate from
+`Source` (Git checkout), `Integration` (these package contents) and `Playable`
+(v0.8.0 contents). A public installation page remains a future release task.
+
+To identify the installed THUG files, run **RUN_THUG_FILE_CHECK.cmd**, browse to
+the actual game subfolder, and return `logs/GonkSkate-thug-files-results-*.zip`.
+It records names, sizes and counts without reading asset contents; links and
+GonkSkate package folders are skipped. Inaccessible paths or scan limits are
+reported as incomplete. Source formats and character matches are not inferred
+from filenames alone. Five inventory checks and an actual folder-picker fixture
+pass; owner Windows execution with the installed game remains pending.
 
 Run `RUN_CHARACTER_CHECK.cmd` for 26 asset-free skeleton/mesh/texture/animation/export tests.
 It produces `logs/GonkSkate-character-results-TIMESTAMP.zip` and needs no game
@@ -99,7 +114,7 @@ Read `docs/THUG_EMBEDDED_RUNTIME.md`. The library/MSVC-ABI and native replay
 tests passed under Wine; full retail source-build and live Skate player control
 still need owner-side validation and player/tick/collision investigation.
 
-SHA256: `de28afa314575e037c45126b3907e27027fe2b2434749f0738e63c0ff10993d5`
+SHA256: `1fb2e611632a165e3a6f08962037ae97258a1fa8535af7418a087352ca86e9e2`
 
 The [previous geometry check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-cc1e549.zip)
 and [skeleton-only check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-c390904.zip) are preserved.
