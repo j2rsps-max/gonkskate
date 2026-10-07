@@ -115,6 +115,9 @@ CODEX_HANDOFF.md and CODEX_START_PROMPT.txt prepare a new local/cloud Codex chat
 For coding, clone the full repository into Z:\Games\GonkSkate\Source; this ZIP
 is only a portable subset. Keep the existing THUG folder separate from Source,
 Integration (this package's contents) and Playable (v0.8.0 package contents).
+Use a main-only source checkout to keep historical binary packages in the
+separate downloads workflow:
+git clone --single-branch --branch main https://github.com/j2rsps-max/gonkskate.git "Z:\Games\GonkSkate\Source"
 
 Real THUG ground/air/rail now runs from an embeddable DLL. The check verifies
 native contracts and deterministic movement/replay against the prior executable.

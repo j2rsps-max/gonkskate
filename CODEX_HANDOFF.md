@@ -31,7 +31,7 @@ Z:\Games\GonkSkate\
 If `Source` does not exist, the owner can create the checkout with:
 
 ```powershell
-git clone https://github.com/j2rsps-max/gonkskate.git 'Z:\Games\GonkSkate\Source'
+git clone --single-branch --branch main https://github.com/j2rsps-max/gonkskate.git 'Z:\Games\GonkSkate\Source'
 ```
 
 Set the local Codex project's working directory to `Source`, or tell the new
@@ -39,6 +39,8 @@ chat to use that repository if its project points to the parent. Paste
 `CODEX_START_PROMPT.txt` into the first chat. The full repository contains this
 handoff; the small Integration Check ZIP ships copies for convenience but omits
 most source. Do not try to develop the whole runtime from that subset.
+The clone selects `main` so the large historical binary packages stay in the
+separate download workflow. It preserves the source branch's history.
 
 If a checkout already exists, inspect `git status`, its remotes and recent commits
 before updating. Preserve local work. Pull clean source with `git pull --ff-only`;
