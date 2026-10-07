@@ -27,7 +27,7 @@ Source and project history are on [main](https://github.com/j2rsps-max/gonkskate
 
 ## Integration and character development check
 
-[Download the engine/character check with THUG inventory and Codex handoff](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-19f814c.zip) — about 1.8 MB, source `19f814c`.
+[Download the engine/character check with THUG inventory and Codex handoff](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-803baca.zip) — about 1.8 MB, source `803baca`.
 
 Extract this into a **new folder** and run `RUN_INTEGRATION_CHECK.cmd`. Python
 3.10+ is required. Return `logs/GonkSkate-integration-results-TIMESTAMP.zip`.
@@ -114,7 +114,7 @@ Read `docs/THUG_EMBEDDED_RUNTIME.md`. The library/MSVC-ABI and native replay
 tests passed under Wine; full retail source-build and live Skate player control
 still need owner-side validation and player/tick/collision investigation.
 
-SHA256: `1fb2e611632a165e3a6f08962037ae97258a1fa8535af7418a087352ca86e9e2`
+SHA256: `d8515f751c2f3e0b588c5fd582caa93f42b3c9be7f39492b6cdc755142b53aef`
 
 The [previous geometry check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-cc1e549.zip)
 and [skeleton-only check](https://raw.githubusercontent.com/j2rsps-max/gonkskate/downloads/GonkSkate-Integration-Check-c390904.zip) are preserved.
